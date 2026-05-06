@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ico.png">
+    <title>Ilay-dev | Projects</title>
+    <style>
+        /* CSS Reset & Core Minimalist Variables */
+        :root {
+            --bg-base: #09090b;
+            --bg-card: #111113;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+            --border-hover: #52525b;
+            --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* 1.5s Minimal Loading Screen */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-base);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-line {
+            width: 0px;
+            height: 1px;
+            background-color: var(--text-main);
+            /* Exact 1.5s animation */
+            animation: loadProgress 1.5s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+        }
+
+        @keyframes loadProgress {
+            0% { width: 0px; opacity: 0; }
+            40% { opacity: 1; }
+            80% { width: 150px; opacity: 1; }
+            100% { width: 150px; opacity: 0; }
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        /* Header Animation */
+        header {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.03em;
+        }
+
+        /* Styling for the Header Link */
+        h1 a {
+            color: var(--text-main);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        h1 a:hover {
+            color: var(--text-muted);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        /* Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        /* Card Base Styling & JS Animation Setup */
+        .project-card {
+            position: relative;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            
+            /* Initial hidden state for staggered load */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease;
+            overflow: hidden;
+        }
+
+        .project-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Subtle Monochromatic Spotlight Hover Effect */
+        .project-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.04),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        /* Keep content above the spotlight effect */
+        .card-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .project-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin: 0 0 0.75rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Arrow icon with subtle hover motion */
+        .project-title::after {
+            content: '↗';
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+        }
+
+        .project-card:hover .project-title::after {
+            transform: translate(3px, -3px);
+            color: var(--text-main);
+        }
+
+        .project-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 3rem 1.5rem; }
+            h1 { font-size: 2rem; }
+            .projects-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1.5s Clean Loader -->
+    <div id="loader">
+        <div class="loader-line"></div>
+    </div>
+
+    <div class="container">
+        <header id="header">
+            <h1><a href="https://github.com/Ilay-dev" target="_blank" rel="noopener">Ilay-dev</a></h1>
+            <p class="subtitle">A collection of my open-source projects and repositories.</p>
+        </header>
+
+        <div class="projects-grid" id="grid">
+            
+            <a href="https://ilay-dev.github.io/AudioVizuallizer" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">AudioVizuallizer</h2>
+                    <p class="project-desc">A simple but cool interactive tool that translates audio signals into real-time graphical animations.</p>
+                </div>
+            </a>
+
+            <a href="https://ilay-dev.github.io/3dView" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">3dView</h2>
+                    <p class="project-desc">A sleek web-based 3D viewer for loading, rendering, and interacting with models directly in the browser.</p>
+                </div>
+            </a>
+
+            <a href="https://ilay-dev.github.io/DeepVision" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">DeepVision</h2>
+                    <p class="project-desc">An experimental project focused on computer vision, analyzing and processing visual data.</p>
+                </div>
+            </a>
+
+            <a href="https://ilay-dev.github.io/sort" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">sort</h2>
+                    <p class="project-desc">A dynamic visualizer for various sorting algorithms, making complex logic easy to understand.</p>
+                </div>
+            </a>
+
+            <a href="https://ilay-dev.github.io/BlenderProjects" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">BlenderProjects</h2>
+                    <p class="project-desc">A dedicated showcase of my personal 3D models, scenes, and animations created in Blender.</p>
+                </div>
+            </a>
+
+            <a href="https://ilay-dev.github.io/clock" class="project-card" target="_blank" rel="noopener">
+                <div class="card-content">
+                    <h2 class="project-title">clock</h2>
+                    <p class="project-desc">A minimalist, high-performance web clock with a functional and purely modern aesthetic.</p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+            const header = document.getElementById('header');
+            const cards = document.querySelectorAll('.project-card');
+            const grid = document.getElementById('grid');
+
+            // 1. Remove Loader & Start Enter Animations after exactly 1.5s
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                
+                // Fade in header
+                header.classList.add('visible');
+
+                // Staggered fade in for cards
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, index * 100); // 100ms delay between each card
+                });
+            }, 1500);
+
+            // 2. Modern JS Spotlight Mouse Tracking
+            grid.addEventListener('mousemove', (e) => {
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    // Calculate mouse position relative to the card
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Update CSS variables for the spotlight pseudo-element
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
