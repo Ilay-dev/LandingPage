@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="ico.png">
-    <title>Ilay-dev (Ilay Schönknecht) | Projects</title>
+    <title>Ilay-dev (Ilay Schönknecht) | Portfolio</title>
     <meta name="author" content="Ilay Schönknecht">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="Ilay Schönknecht (Ilay-dev) | Portfolio">
-    <meta property="og:description" content="Discover my open-source projects and repositories.">
+    <meta property="og:description" content="Discover my open-source projects, 3D art, and repositories.">
     <meta property="og:url" content="https://ilay-dev.github.io/">
     <meta property="og:type" content="website">
     <meta name="description" content="Personal portfolio and open-source projects by Ilay Schönknecht (Ilay-dev). Web development, 3D modeling, and software engineering.">
-    <meta name="keywords" content="ilay-dev, ilay.dev, Ilay Schönknecht, ilay, developer, portfolio, github projects, software development">
-    <meta name="google-site-verification" content="bIe8L7Eavj8dRBVM8IMnRUdhvy1VNtRYnfkEC_qLFf8" />
+    <meta name="keywords" content="ilay-dev, ilay.dev, Ilay Schönknecht, ilay, developer, portfolio, github projects, software development, 3D artist, Blender">
     <style>
         /* CSS Reset & Core Minimalist Variables */
         :root {
@@ -23,6 +22,7 @@
             --text-muted: #a1a1aa;
             --border-color: #27272a;
             --border-hover: #52525b;
+            --accent: #ffffff;
             --font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, sans-serif;
         }
 
@@ -53,7 +53,6 @@
             width: 0px;
             height: 1px;
             background-color: var(--text-main);
-            /* Exact 1.5s animation */
             animation: loadProgress 1.5s cubic-bezier(0.7, 0, 0.3, 1) forwards;
         }
 
@@ -77,46 +76,66 @@
             padding: 5rem 2rem;
             display: flex;
             flex-direction: column;
-            gap: 4rem;
+            gap: 5rem;
         }
 
-        /* Header Animation */
-        header {
+        /* Global Animation Class */
+        .fade-up {
             opacity: 0;
-            transform: translateY(15px);
+            transform: translateY(20px);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
-
-        header.visible {
+        .fade-up.visible {
             opacity: 1;
             transform: translateY(0);
         }
 
+        /* Header & About */
         h1 {
             font-size: 2.5rem;
             font-weight: 600;
             margin: 0 0 0.5rem 0;
             letter-spacing: -0.03em;
         }
-
-        /* Styling for the Header Link */
         h1 a {
             color: var(--text-main);
             text-decoration: none;
             transition: color 0.2s ease;
         }
-
         h1 a:hover {
             color: var(--text-muted);
         }
-
         .subtitle {
-            color: var(--text-muted);
+            color: var(--text-main);
             font-size: 1.1rem;
+            margin: 0 0 1rem 0;
+            font-weight: 500;
+        }
+        .about-text {
+            color: var(--text-muted);
+            font-size: 1rem;
+            max-width: 700px;
             margin: 0;
         }
 
-        /* Grid */
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin: 0 0 1.5rem 0;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .section-title::after {
+            content: "";
+            height: 1px;
+            flex-grow: 1;
+            background-color: var(--border-color);
+        }
+
+        /* Projects Grid */
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -124,7 +143,6 @@
             position: relative;
         }
 
-        /* Card Base Styling & JS Animation Setup */
         .project-card {
             position: relative;
             background-color: var(--bg-card);
@@ -135,20 +153,9 @@
             color: inherit;
             display: flex;
             flex-direction: column;
-            
-            /* Initial hidden state for staggered load */
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease;
+            transition: border-color 0.3s ease;
             overflow: hidden;
         }
-
-        .project-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Subtle Monochromatic Spotlight Hover Effect */
         .project-card::before {
             content: "";
             position: absolute;
@@ -166,16 +173,9 @@
             pointer-events: none;
             z-index: 1;
         }
+        .project-card:hover::before { opacity: 1; }
+        .project-card:hover { border-color: var(--border-hover); }
 
-        .project-card:hover::before {
-            opacity: 1;
-        }
-
-        .project-card:hover {
-            border-color: var(--border-hover);
-        }
-
-        /* Keep content above the spotlight effect */
         .card-content {
             position: relative;
             z-index: 2;
@@ -183,7 +183,6 @@
             flex-direction: column;
             height: 100%;
         }
-
         .project-title {
             font-size: 1.25rem;
             font-weight: 500;
@@ -192,20 +191,16 @@
             align-items: center;
             justify-content: space-between;
         }
-
-        /* Arrow icon with subtle hover motion */
         .project-title::after {
             content: '↗';
             font-size: 1.1rem;
             color: var(--text-muted);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
         }
-
         .project-card:hover .project-title::after {
             transform: translate(3px, -3px);
             color: var(--text-main);
         }
-
         .project-desc {
             color: var(--text-muted);
             font-size: 0.95rem;
@@ -213,11 +208,82 @@
             flex-grow: 1;
         }
 
+        /* Blender Gallery Grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        .gallery-item {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            object-fit: cover;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .gallery-item:hover {
+            border-color: var(--border-hover);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+        .media-vertical {
+            grid-column: span 1;
+            aspect-ratio: 9 / 16;
+        }
+        .media-horizontal {
+            grid-column: span 2;
+            aspect-ratio: 16 / 9;
+        }
+
+        /* Contact Section */
+        .contact-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: var(--bg-card);
+            padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .email-text {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        .copy-btn {
+            background-color: var(--text-main);
+            color: var(--bg-base);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .copy-btn:hover {
+            background-color: #d4d4d8;
+        }
+        .copy-btn:active {
+            transform: scale(0.97);
+        }
+
         /* Responsive */
+        @media (max-width: 800px) {
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+            .media-horizontal { grid-column: span 2; }
+        }
         @media (max-width: 600px) {
-            .container { padding: 3rem 1.5rem; }
+            .container { padding: 3rem 1.5rem; gap: 3.5rem; }
             h1 { font-size: 2rem; }
             .projects-grid { grid-template-columns: 1fr; }
+            
+            .gallery-grid { grid-template-columns: 1fr; }
+            .media-horizontal, .media-vertical { grid-column: span 1; aspect-ratio: auto; min-height: 250px; }
+            
+            .contact-box { flex-direction: column; width: 100%; box-sizing: border-box; padding: 1rem; align-items: flex-start; }
+            .copy-btn { width: 100%; }
         }
     </style>
 </head>
@@ -229,94 +295,206 @@
     </div>
 
     <div class="container">
-        <header id="header">
+        
+        <!-- Header & About -->
+        <header class="fade-up" id="header">
             <h1><a href="https://github.com/Ilay-dev" target="_blank" rel="noopener">Ilay-dev</a></h1>
-            <p class="subtitle">A collection of my open-source projects and repositories.</p>
+            
+            <p class="subtitle" 
+               data-en="Software Developer & 3D Artist" 
+               data-de="Softwareentwickler & 3D-Künstler">
+                Software Developer & 3D Artist
+            </p>
+            
+            <p class="about-text" 
+               data-en="Hi, I'm Ilay Schönknecht. I build interactive web applications, write Python tools for automation and AI, and create photorealistic 3D environments. Welcome to a collection of my open-source projects and digital art." 
+               data-de="Hallo, ich bin Ilay Schönknecht. Ich entwickle interaktive Webanwendungen, schreibe Python-Tools für Automatisierung und KI und erstelle fotorealistische 3D-Umgebungen. Willkommen bei einer Sammlung meiner Open-Source-Projekte und digitaler Kunst.">
+                Hi, I'm Ilay Schönknecht. I build interactive web applications, write Python tools for automation and AI, and create photorealistic 3D environments. Welcome to a collection of my open-source projects and digital art.
+            </p>
         </header>
 
-        <div class="projects-grid" id="grid">
-            
-            <a href="https://ilay-dev.github.io/AudioVizuallizer" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">AudioVizuallizer</h2>
-                    <p class="project-desc">A simple but cool interactive tool that translates audio signals into real-time graphical animations.</p>
-                </div>
-            </a>
+        <!-- Projects Section -->
+        <section class="fade-up" id="projects">
+            <h2 class="section-title" data-en="Projects" data-de="Projekte">Projects</h2>
+            <div class="projects-grid" id="grid">
+                
+                <a href="https://github.com/Ilay-dev/VoAs-1.0" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">Jarvis AI (VoAs-1.0)</h2>
+                        <p class="project-desc" 
+                           data-en="A local, offline-capable voice assistant for Windows. Uses OpenWakeWord, Faster-Whisper, and connects to local LLMs to execute desktop tasks, analyze screens, and write code." 
+                           data-de="Ein lokaler, offline-fähiger und sprachgesteuerter KI-Assistent für Windows. Nutzt OpenWakeWord, Faster-Whisper und verbindet sich mit lokalen LLMs, um Desktop-Aufgaben auszuführen, Bildschirme zu analysieren und Code zu schreiben.">
+                            A local, offline-capable voice assistant for Windows. Uses OpenWakeWord, Faster-Whisper, and connects to local LLMs to execute desktop tasks, analyze screens, and write code.
+                        </p>
+                    </div>
+                </a>
 
-            <a href="https://ilay-dev.github.io/3dView" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">3dView</h2>
-                    <p class="project-desc">A sleek web-based 3D viewer for loading, rendering, and interacting with models directly in the browser.</p>
-                </div>
-            </a>
+                <a href="https://github.com/Ilay-dev/PlanetGen" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">PlanetGen</h2>
+                        <p class="project-desc" 
+                           data-en="A browser-based 3D planet generator. Procedurally create highly detailed, photorealistic planets with dynamic weather and advanced biomes, and export them as .glb files." 
+                           data-de="Ein browserbasierter 3D-Planetengenerator. Erstelle prozedural hochdetaillierte, fotorealistische Planeten mit dynamischem Wetter und fortgeschrittenen Biomen und exportiere sie als .glb-Dateien.">
+                            A browser-based 3D planet generator. Procedurally create highly detailed, photorealistic planets with dynamic weather and advanced biomes, and export them as .glb files.
+                        </p>
+                    </div>
+                </a>
+                
+                <a href="https://ilay-dev.github.io/AudioVizuallizer" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">AudioVizuallizer</h2>
+                        <p class="project-desc" 
+                           data-en="A simple but cool interactive tool that translates audio signals into real-time graphical animations." 
+                           data-de="Ein einfaches, aber cooles interaktives Tool, das Audiosignale in Echtzeit in grafische Animationen übersetzt.">
+                            A simple but cool interactive tool that translates audio signals into real-time graphical animations.
+                        </p>
+                    </div>
+                </a>
 
-            <a href="https://github.com/Ilay-dev/AutoWrite" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">AutoWrite</h2>
-                    <p class="project-desc">A Python GUI tool that automatically types text for you, featuring a "Humanity" slider to simulate real human typing behavior.</p>
-                </div>
-            </a>
+                <a href="https://ilay-dev.github.io/3dView" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">3dView</h2>
+                        <p class="project-desc" 
+                           data-en="A sleek web-based 3D viewer for loading, rendering, and interacting with models directly in the browser." 
+                           data-de="Ein eleganter, webbasierter 3D-Viewer zum Laden, Rendern und Interagieren mit Modellen direkt im Browser.">
+                            A sleek web-based 3D viewer for loading, rendering, and interacting with models directly in the browser.
+                        </p>
+                    </div>
+                </a>
 
-            <a href="https://ilay-dev.github.io/sort" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">sort</h2>
-                    <p class="project-desc">A dynamic visualizer for various sorting algorithms, making complex logic easy to understand.</p>
-                </div>
-            </a>
+                <a href="https://github.com/Ilay-dev/AutoWrite" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">AutoWrite</h2>
+                        <p class="project-desc" 
+                           data-en="A Python GUI tool that automatically types text for you, featuring a &quot;Humanity&quot; slider to simulate real human typing behavior." 
+                           data-de="Ein Python-GUI-Tool, das automatisch Text für dich tippt, mit einem &quot;Menschlichkeits&quot;-Regler, um echtes menschliches Tippverhalten zu simulieren.">
+                            A Python GUI tool that automatically types text for you, featuring a "Humanity" slider to simulate real human typing behavior.
+                        </p>
+                    </div>
+                </a>
 
-            <a href="https://ilay-dev.github.io/BlenderProjects" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">BlenderProjects</h2>
-                    <p class="project-desc">A dedicated showcase of my personal 3D models, scenes, and animations created in Blender.</p>
-                </div>
-            </a>
+                <a href="https://github.com/Ilay-dev/ESP32-Cam" class="project-card" target="_blank" rel="noopener">
+                    <div class="card-content">
+                        <h2 class="project-title">ESP32-Cam</h2>
+                        <p class="project-desc" 
+                           data-en="A standalone web-camera and photo-capture server for the ESP32-CAM module, featuring concurrent video streaming and SD card capturing." 
+                           data-de="Ein eigenständiger Webkamera- und Foto-Aufnahmeserver für das ESP32-CAM-Modul, der gleichzeitiges Video-Streaming und SD-Karten-Aufnahmen bietet.">
+                            A standalone web-camera and photo-capture server for the ESP32-CAM module, featuring concurrent video streaming and SD card capturing.
+                        </p>
+                    </div>
+                </a>
 
-            <a href="https://github.com/Ilay-dev/ESP32-Cam" class="project-card" target="_blank" rel="noopener">
-                <div class="card-content">
-                    <h2 class="project-title">ESP32-Cam</h2>
-                    <p class="project-desc">A standalone web-camera and photo-capture server for the ESP32-CAM module, featuring concurrent video streaming and SD card capturing.</p>
-                </div>
-            </a>
+            </div>
+        </section>
 
-        </div>
+        <!-- Blender Experience Section -->
+        <section class="fade-up" id="blender">
+            <h2 class="section-title" data-en="3D Art & Blender" data-de="3D-Kunst & Blender">3D Art & Blender</h2>
+            <div class="gallery-grid">
+                
+                <!-- Row 1: Vert Video + Vert Image + Horiz Image -->
+                <video class="gallery-item media-vertical" autoplay loop muted playsinline>
+                    <source src="src/Holo_vid_sound.mp4" type="video/mp4">
+                </video>
+                <img class="gallery-item media-vertical" src="src/Diego.png" alt="Diego 3D Render">
+                <img class="gallery-item media-horizontal" src="src/f75_grass.jpg" alt="Grass 3D Render">
+                
+                <!-- Row 2: Vert Video + Vert Image + Horiz Image -->
+                <video class="gallery-item media-vertical" autoplay loop muted playsinline>
+                    <!-- Dateiendung wurde wie gewünscht auf mp4 gesetzt -->
+                    <source src="src/Backrooms_v2_vid.mp4" type="video/mp4">
+                </video>
+                <img class="gallery-item media-vertical" src="src/p1_forest_4.png" alt="Forest Render">
+                <img class="gallery-item media-horizontal" src="src/irl_Spaceship.png" alt="Spaceship Render">
+                
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="fade-up" id="contact">
+            <h2 class="section-title" data-en="Contact" data-de="Kontakt">Contact</h2>
+            <div class="contact-box">
+                <span class="email-text" id="emailText">ilay.schoenknecht@gmail.com</span>
+                <button class="copy-btn" id="copyBtn" onclick="copyEmail()">Copy Email</button>
+            </div>
+        </section>
+
     </div>
 
     <script>
+        // Language detection state
+        let isGerman = false;
+
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. Language Setup ---
+            const userLang = navigator.language || navigator.userLanguage;
+            isGerman = userLang.toLowerCase().startsWith('de');
+            
+            // Set HTML lang attribute
+            document.documentElement.lang = isGerman ? 'de' : 'en';
+
+            // Swap all texts based on language
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.innerHTML = isGerman ? el.getAttribute('data-de') : el.getAttribute('data-en');
+            });
+
+            // Set Initial Copy Button Text
+            const copyBtn = document.getElementById('copyBtn');
+            copyBtn.innerText = isGerman ? 'E-Mail kopieren' : 'Copy Email';
+
+
+            // --- 2. Animations & Interactions ---
             const loader = document.getElementById('loader');
-            const header = document.getElementById('header');
+            const fadeElements = document.querySelectorAll('.fade-up');
             const cards = document.querySelectorAll('.project-card');
             const grid = document.getElementById('grid');
 
-            // 1. Remove Loader & Start Enter Animations after exactly 1.5s
+            // Remove Loader & Start Enter Animations after exactly 1.5s
             setTimeout(() => {
                 loader.classList.add('hidden');
                 
-                // Fade in header
-                header.classList.add('visible');
-
-                // Staggered fade in for cards
-                cards.forEach((card, index) => {
+                // Staggered fade in for all sections
+                fadeElements.forEach((el, index) => {
                     setTimeout(() => {
-                        card.classList.add('visible');
-                    }, index * 100); // 100ms delay between each card
+                        el.classList.add('visible');
+                    }, index * 150);
                 });
             }, 1500);
 
-            // 2. Modern JS Spotlight Mouse Tracking
+            // Modern JS Spotlight Mouse Tracking for Projects
             grid.addEventListener('mousemove', (e) => {
                 cards.forEach(card => {
                     const rect = card.getBoundingClientRect();
-                    // Calculate mouse position relative to the card
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
-                    // Update CSS variables for the spotlight pseudo-element
                     card.style.setProperty('--mouse-x', `${x}px`);
                     card.style.setProperty('--mouse-y', `${y}px`);
                 });
             });
         });
+
+        // Copy Email Function
+        function copyEmail() {
+            const email = document.getElementById('emailText').innerText;
+            const btn = document.getElementById('copyBtn');
+            const defaultText = isGerman ? 'E-Mail kopieren' : 'Copy Email';
+            const copiedText = isGerman ? 'Kopiert!' : 'Copied!';
+            
+            navigator.clipboard.writeText(email).then(() => {
+                btn.innerText = copiedText;
+                btn.style.backgroundColor = '#10b981'; // Green confirmation color
+                btn.style.color = '#fff';
+                
+                setTimeout(() => {
+                    btn.innerText = defaultText;
+                    btn.style.backgroundColor = ''; 
+                    btn.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
     </script>
 </body>
 </html>
