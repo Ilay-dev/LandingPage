@@ -319,13 +319,13 @@
             <h2 class="section-title" data-en="Projects" data-de="Projekte">Projects</h2>
             <div class="projects-grid" id="grid">
                 
-                <a href="https://github.com/Ilay-dev/VoAs-1.0" class="project-card" target="_blank" rel="noopener">
+                <a href="https://ilay-dev.github.io/SimpleSplat" class="project-card" target="_blank" rel="noopener">
                     <div class="card-content">
-                        <h2 class="project-title">Jarvis AI (VoAs-1.0)</h2>
+                        <h2 class="project-title">SimpleSplat</h2>
                         <p class="project-desc" 
-                           data-en="A local, offline-capable voice assistant for Windows. Uses OpenWakeWord, Faster-Whisper, and connects to local LLMs to execute desktop tasks, analyze screens, and write code." 
-                           data-de="Ein lokaler, offline-fähiger und sprachgesteuerter KI-Assistent für Windows. Nutzt OpenWakeWord, Faster-Whisper und verbindet sich mit lokalen LLMs, um Desktop-Aufgaben auszuführen, Bildschirme zu analysieren und Code zu schreiben.">
-                            A local, offline-capable voice assistant for Windows. Uses OpenWakeWord, Faster-Whisper, and connects to local LLMs to execute desktop tasks, analyze screens, and write code.
+                           data-en="This is a minimalistic gaussian splat viewer." 
+                           data-de="Dies ist ein minimalistischer Gaussian Splat Viewer.">
+                            This is a minimalistic gaussian splat viewer.
                         </p>
                     </div>
                 </a>
@@ -402,7 +402,6 @@
                 
                 <!-- Row 2: Vert Video + Vert Image + Horiz Image -->
                 <video class="gallery-item media-vertical" autoplay loop muted playsinline>
-                    <!-- Dateiendung wurde wie gewünscht auf mp4 gesetzt -->
                     <source src="src/Backrooms_v2_vid.mp4" type="video/mp4">
                 </video>
                 <img class="gallery-item media-vertical" src="src/p1_forest_4.png" alt="Forest Render">
@@ -473,6 +472,214 @@
                     card.style.setProperty('--mouse-y', `${y}px`);
                 });
             });
+
+            // --- 3. WebGL Depth Map 3D Parallax Effect ---
+            class DepthImage3D {
+                constructor(imgElement) {
+                    this.ready = false;
+                    this.src = imgElement.src;
+                    const lastDot = this.src.lastIndexOf('.');
+                    
+                    // Automatische Namenserkennung der "_deph" Map
+                    this.depthSrc = this.src.substring(0, lastDot) + '_deph' + this.src.substring(lastDot);
+
+                    this.canvas = document.createElement('canvas');
+                    this.canvas.className = imgElement.className;
+                    
+                    // Canvas einfügen und originales Bild verstecken
+                    imgElement.parentNode.insertBefore(this.canvas, imgElement);
+                    imgElement.style.display = 'none';
+
+                    this.gl = this.canvas.getContext('webgl');
+                    if (!this.gl) {
+                        this.canvas.remove();
+                        imgElement.style.display = ''; // Fallback bei nicht unterstützten Geräten
+                        return;
+                    }
+                    this.init();
+                }
+
+                async init() {
+                    const gl = this.gl;
+                    
+                    // Shader
+                    const vsSource = `
+                        attribute vec2 a_pos;
+                        attribute vec2 a_uv;
+                        varying vec2 v_uv;
+                        void main() {
+                            gl_Position = vec4(a_pos, 0.0, 1.0);
+                            v_uv = vec2(a_uv.x, 1.0 - a_uv.y);
+                        }
+                    `;
+                    const fsSource = `
+                        precision mediump float;
+                        uniform sampler2D u_img;
+                        uniform sampler2D u_depth;
+                        uniform vec2 u_offset;
+                        varying vec2 v_uv;
+                        void main() {
+                            // Leicht hineinzoomen (um 5%), um Ränder beim Verschieben zu verbergen
+                            vec2 uv = (v_uv - 0.5) * 0.95 + 0.5;
+                            float depth = texture2D(u_depth, uv).r;
+                            
+                            // Verschieben basierend auf Tiefe und Maus/Handy-Neigung
+                            uv += u_offset * (depth - 0.5) * 0.04;
+                            gl_FragColor = texture2D(u_img, uv);
+                        }
+                    `;
+                    
+                    this.prog = this.createProgram(gl, vsSource, fsSource);
+                    gl.useProgram(this.prog);
+
+                    // Quad Daten
+                    const posBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                        -1.0, -1.0,   1.0, -1.0,  -1.0,  1.0,
+                        -1.0,  1.0,   1.0, -1.0,   1.0,  1.0
+                    ]), gl.STATIC_DRAW);
+
+                    const uvBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                         0.0,  0.0,   1.0,  0.0,   0.0,  1.0,
+                         0.0,  1.0,   1.0,  0.0,   1.0,  1.0
+                    ]), gl.STATIC_DRAW);
+
+                    this.posLoc = gl.getAttribLocation(this.prog, "a_pos");
+                    this.uvLoc = gl.getAttribLocation(this.prog, "a_uv");
+                    this.offsetLoc = gl.getUniformLocation(this.prog, "u_offset");
+                    
+                    this.posBuf = posBuffer;
+                    this.uvBuf = uvBuffer;
+
+                    gl.uniform1i(gl.getUniformLocation(this.prog, "u_img"), 0);
+                    gl.uniform1i(gl.getUniformLocation(this.prog, "u_depth"), 1);
+
+                    // Texturen laden
+                    const [imgData, depthData] = await Promise.all([
+                        this.loadTexture(gl, this.src),
+                        this.loadTexture(gl, this.depthSrc)
+                    ]);
+
+                    this.texImg = imgData.tex;
+                    this.texDepth = depthData.tex;
+
+                    // Native Bildauflösung verwenden (CSS object-fit regelt den Rest!)
+                    this.canvas.width = imgData.w;
+                    this.canvas.height = imgData.h;
+                    gl.viewport(0, 0, imgData.w, imgData.h);
+
+                    this.ready = true;
+                }
+
+                loadTexture(gl, url) {
+                    return new Promise(resolve => {
+                        const tex = gl.createTexture();
+                        gl.bindTexture(gl.TEXTURE_2D, tex);
+                        // Temporäres Pixel, während es lädt
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
+                        
+                        const img = new Image();
+                        img.onload = () => {
+                            gl.bindTexture(gl.TEXTURE_2D, tex);
+                            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                            resolve({ tex, w: img.width, h: img.height });
+                        };
+                        img.onerror = () => {
+                            console.warn("Konnte Textur nicht laden:", url);
+                            resolve({ tex, w: 1, h: 1 });
+                        }
+                        img.src = url;
+                    });
+                }
+
+                createProgram(gl, vsSrc, fsSrc) {
+                    const vs = gl.createShader(gl.VERTEX_SHADER);
+                    gl.shaderSource(vs, vsSrc); gl.compileShader(vs);
+                    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+                    gl.shaderSource(fs, fsSrc); gl.compileShader(fs);
+                    const prog = gl.createProgram();
+                    gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+                    gl.linkProgram(prog);
+                    return prog;
+                }
+
+                draw(offsetX, offsetY) {
+                    if (!this.ready) return;
+                    const gl = this.gl;
+                    gl.useProgram(this.prog);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuf);
+                    gl.enableVertexAttribArray(this.posLoc);
+                    gl.vertexAttribPointer(this.posLoc, 2, gl.FLOAT, false, 0, 0);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuf);
+                    gl.enableVertexAttribArray(this.uvLoc);
+                    gl.vertexAttribPointer(this.uvLoc, 2, gl.FLOAT, false, 0, 0);
+
+                    gl.uniform2f(this.offsetLoc, offsetX, offsetY);
+
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, this.texImg);
+                    gl.activeTexture(gl.TEXTURE1);
+                    gl.bindTexture(gl.TEXTURE_2D, this.texDepth);
+
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                }
+            }
+
+            // WebGL für alle Galerie-Bilder (ignoriert Videos) initialisieren
+            const instances = [];
+            document.querySelectorAll('img.gallery-item').forEach(img => {
+                instances.push(new DepthImage3D(img));
+            });
+
+            // Maus- und Gyroskop-Tracking
+            let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+
+            // PC: Maussteuerung
+            document.addEventListener('mousemove', (e) => {
+                targetX = (e.clientX / window.innerWidth - 0.5) * 2.0;
+                targetY = -(e.clientY / window.innerHeight - 0.5) * 2.0;
+            });
+
+            // Mobile: Gyroskop (Neigung des Handys)
+            window.addEventListener('deviceorientation', (e) => {
+                if (e.gamma !== null && e.beta !== null) {
+                    let x = e.gamma / 45.0; // links/rechts
+                    let y = (e.beta - 45) / 45.0; // oben/unten (bei ~45 Grad Halteposition)
+                    targetX = Math.max(-1, Math.min(1, x));
+                    targetY = Math.max(-1, Math.min(1, -y));
+                }
+            });
+
+            // iOS 13+ Gyro-Erlaubnis beim ersten Antippen anfragen
+            let permissionGranted = false;
+            document.body.addEventListener('click', () => {
+                if (!permissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') permissionGranted = true;
+                        })
+                        .catch(console.error);
+                }
+            }, { once: true });
+
+            // Animations-Schleife für flüssige Bewegungen
+            function render3D() {
+                // Smooth Lerp (verzögerte Bewegung)
+                currentX += (targetX - currentX) * 0.08;
+                currentY += (targetY - currentY) * 0.08;
+                
+                instances.forEach(inst => inst.draw(currentX, currentY));
+                requestAnimationFrame(render3D);
+            }
+            render3D();
         });
 
         // Copy Email Function
