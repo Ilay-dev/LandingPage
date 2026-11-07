@@ -1,6 +1,14 @@
 import React from 'react';
+import GooeyNav from './GooeyNav';
 
 export default function Navbar({ isGerman, onToggleLanguage }) {
+  const items = [
+    { label: 'Home', href: '#header' },
+    { label: isGerman ? 'Work' : 'Work', href: '#projects' },
+    { label: isGerman ? '3D & Blender' : 'About', href: '#blender' },
+    { label: isGerman ? 'Kontakt' : 'Contact', href: '#contact' },
+  ];
+
   return (
     <header className="site-header">
       <div className="nav-inner">
@@ -9,20 +17,30 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
           <span>Ilay-dev</span>
         </a>
 
-        <nav className="nav-links">
-          <a href="#projects" className="nav-link">
-            {isGerman ? 'Projekte' : 'Projects'}
-          </a>
-          <a href="#blender" className="nav-link">
-            3D &amp; Blender
-          </a>
-          <a href="#stack" className="nav-link">
-            {isGerman ? 'Überblick' : 'Overview'}
-          </a>
-          <a href="#contact" className="nav-link">
-            {isGerman ? 'Kontakt' : 'Contact'}
-          </a>
-        </nav>
+        <div className="nav-gooey-wrapper">
+          <GooeyNav
+            items={items}
+            initialActiveIndex={0}
+            theme="dark"
+            size="md"
+            frame={true}
+            particleCount={15}
+            spread={56}
+            animationTime={600}
+            timeVariance={300}
+            gooeyness={0.5}
+            wobble={0.5}
+            hoverEffect={true}
+            onChange={(index, item) => {
+              if (item?.href && item.href.startsWith('#')) {
+                const target = document.querySelector(item.href);
+                if (target) {
+                  target.scrollIntoView({ behavior: 'smooth' });
+                }
+              }
+            }}
+          />
+        </div>
 
         <div className="nav-controls">
           <button
@@ -45,4 +63,3 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
     </header>
   );
 }
-

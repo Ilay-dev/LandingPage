@@ -155,6 +155,65 @@ body {
   gap: 0.75rem;
 }
 
+.nav-gooey-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tech-text-hero-wrap {
+  color: var(--color-10-accent);
+  border-bottom: 1px solid var(--color-30-border);
+  margin-bottom: 1rem;
+}
+
+.projects-controls-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.projects-carousel-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.project-carousel-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+}
+
+.project-slide-title {
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.75rem 0;
+  color: var(--color-10-accent);
+}
+
+.project-slide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-30-border);
+}
+
 .lang-btn {
   background-color: var(--color-30-surface);
   color: var(--color-30-text);
