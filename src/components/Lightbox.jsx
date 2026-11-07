@@ -16,6 +16,7 @@ export default function Lightbox({ item, onClose }) {
 
   if (!item) return null;
 
+
   return (
     <div
       className="lightbox open"
