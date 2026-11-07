@@ -845,10 +845,10 @@ body {
 
 @media (max-width: 859px) {
   .nav-inner {
-    padding: 0.65rem 1rem 0.65rem;
-    flex-direction: column;
+    padding: 0.75rem 1.25rem;
+    flex-direction: row;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0;
   }
 
   .nav-bar-top {
@@ -885,17 +885,7 @@ body {
   }
 
   .nav-gooey-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 2px 0;
-  }
-
-  .nav-gooey-wrapper::-webkit-scrollbar {
-    display: none;
+    display: none !important;
   }
 
   .tech-text-hero-wrap {
