@@ -61,7 +61,8 @@
 .gooey-nav__list {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   gap: var(--gn-gap);
   margin: 0;
   padding: 0;
@@ -138,3 +139,22 @@
   }
 }
 
+@media (max-width: 860px) {
+  .gooey-nav {
+    --gn-pad: 4px;
+    --gn-gap: 3px;
+    --gn-font: 12px;
+    --gn-x: 11px;
+    --gn-y: 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .gooey-nav {
+    --gn-pad: 3px;
+    --gn-gap: 2px;
+    --gn-font: 11px;
+    --gn-x: 8px;
+    --gn-y: 5px;
+  }
+}

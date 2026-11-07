@@ -7,10 +7,7 @@ export default function Hero({ isGerman, visible }) {
       className={`hero-section fade-up ${visible ? 'visible' : ''}`}
       id="header"
     >
-      <div
-        className="tech-text-hero-wrap"
-        style={{ width: '100%', height: '340px', position: 'relative' }}
-      >
+      <div className="tech-text-hero-wrap">
         <TechText
           text="Ilay-dev"
           fontWeight={600}

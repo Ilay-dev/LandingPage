@@ -5,17 +5,38 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
   const items = [
     { label: 'Home', href: '#header' },
     { label: isGerman ? 'Work' : 'Work', href: '#projects' },
-    { label: isGerman ? '3D & Blender' : 'About', href: '#blender' },
+    { label: isGerman ? '3D & Blender' : '3D & Blender', href: '#blender' },
     { label: isGerman ? 'Kontakt' : 'Contact', href: '#contact' },
   ];
 
   return (
     <header className="site-header">
       <div className="nav-inner">
-        <a href="#header" className="brand-link">
-          <img src="ico.png" alt="Ilay-dev" />
-          <span>Ilay-dev</span>
-        </a>
+        <div className="nav-bar-top">
+          <a href="#header" className="brand-link">
+            <img src="ico.png" alt="Ilay-dev" />
+            <span>Ilay-dev</span>
+          </a>
+
+          <div className="nav-controls">
+            <button
+              type="button"
+              className="lang-btn"
+              onClick={onToggleLanguage}
+              aria-label="Language switch"
+            >
+              {isGerman ? 'DE / EN' : 'EN / DE'}
+            </button>
+            <a
+              href="https://github.com/Ilay-dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="github-btn"
+            >
+              GitHub ↗
+            </a>
+          </div>
+        </div>
 
         <div className="nav-gooey-wrapper">
           <GooeyNav
@@ -40,24 +61,6 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
               }
             }}
           />
-        </div>
-
-        <div className="nav-controls">
-          <button
-            type="button"
-            className="lang-btn"
-            onClick={onToggleLanguage}
-          >
-            {isGerman ? 'DE / EN' : 'EN / DE'}
-          </button>
-          <a
-            href="https://github.com/Ilay-dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="github-btn"
-          >
-            GitHub ↗
-          </a>
         </div>
       </div>
     </header>
