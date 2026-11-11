@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
+import { GitHubLogo } from './TechIcon';
 
 export default function Navbar({ isGerman, onToggleLanguage }) {
   const [isDesktop, setIsDesktop] = useState(() =>
@@ -44,8 +45,10 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
               target="_blank"
               rel="noopener noreferrer"
               className="github-btn"
+              aria-label="GitHub (@Ilay-dev)"
+              title="GitHub (@Ilay-dev)"
             >
-              GitHub ↗
+              <GitHubLogo size={18} />
             </a>
           </div>
         </div>

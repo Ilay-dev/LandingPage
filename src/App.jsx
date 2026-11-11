@@ -6,6 +6,7 @@ import GallerySection from './components/GallerySection';
 import SpecsSection from './components/SpecsSection';
 import ContactSection from './components/ContactSection';
 import Lightbox from './components/Lightbox';
+import { GitHubLogo } from './components/TechIcon';
 
 class SafeSection extends React.Component {
   constructor(props) {
@@ -79,8 +80,11 @@ export default function App() {
           href="https://github.com/Ilay-dev"
           target="_blank"
           rel="noopener noreferrer"
+          className="footer-github-link"
+          aria-label="GitHub (@Ilay-dev)"
         >
-          github.com/Ilay-dev
+          <GitHubLogo size={16} />
+          <span>github.com/Ilay-dev</span>
         </a>
       </footer>
 

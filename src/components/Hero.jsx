@@ -1,5 +1,14 @@
 import React from 'react';
 import TechText from './TechText';
+import {
+  BlenderLogo,
+  CppLogo,
+  GitHubLogo,
+  JavaScriptLogo,
+  PythonLogo,
+  ReactLogo,
+  WebGLLogo,
+} from './TechIcon';
 
 export default function Hero({ isGerman, visible }) {
   return (
@@ -40,7 +49,8 @@ export default function Hero({ isGerman, visible }) {
               {isGerman ? 'Projekte ansehen' : 'View Projects'}
             </a>
             <a href="#blender" className="btn-outline">
-              {isGerman ? '3D-Arbeiten' : '3D Works'}
+              <BlenderLogo size={16} />
+              <span>{isGerman ? '3D-Arbeiten' : '3D Works'}</span>
             </a>
           </div>
         </div>
@@ -48,27 +58,64 @@ export default function Hero({ isGerman, visible }) {
         <div className="hero-meta-grid">
           <div className="meta-cell">
             <span className="meta-label">{isGerman ? 'Fokus' : 'Focus'}</span>
-            <span className="meta-value">
-              {isGerman
-                ? 'Web, 3D-Grafik & Code'
-                : 'Web, 3D Graphics & Code'}
+            <span className="meta-value meta-value--logos">
+              <span className="meta-logo-badge" title="React / Web">
+                <ReactLogo size={15} />
+              </span>
+              <span className="meta-logo-badge" title="3D / WebGL">
+                <WebGLLogo size={15} />
+              </span>
+              <span>
+                {isGerman
+                  ? 'Web, 3D-Grafik & Code'
+                  : 'Web, 3D Graphics & Code'}
+              </span>
             </span>
           </div>
           <div className="meta-cell">
             <span className="meta-label">
               {isGerman ? '3D-Software' : '3D Software'}
             </span>
-            <span className="meta-value">Blender / Cycles / WebGL</span>
+            <span className="meta-value meta-value--logos">
+              <span className="meta-logo-badge" title="Blender">
+                <BlenderLogo size={15} />
+              </span>
+              <span className="meta-logo-badge" title="WebGL">
+                <WebGLLogo size={15} />
+              </span>
+              <span>Blender / Cycles / WebGL</span>
+            </span>
           </div>
           <div className="meta-cell">
             <span className="meta-label">
               {isGerman ? 'Sprachen' : 'Languages'}
             </span>
-            <span className="meta-value">JavaScript, Python, C++</span>
+            <span className="meta-value meta-value--logos">
+              <span className="meta-logo-badge" title="JavaScript">
+                <JavaScriptLogo size={15} />
+              </span>
+              <span className="meta-logo-badge" title="Python">
+                <PythonLogo size={15} />
+              </span>
+              <span className="meta-logo-badge" title="C++">
+                <CppLogo size={15} />
+              </span>
+              <span>JavaScript, Python, C++</span>
+            </span>
           </div>
           <div className="meta-cell">
             <span className="meta-label">GitHub</span>
-            <span className="meta-value">github.com/Ilay-dev</span>
+            <a
+              href="https://github.com/Ilay-dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="meta-value meta-value--logos meta-link"
+            >
+              <span className="meta-logo-badge" title="GitHub">
+                <GitHubLogo size={15} />
+              </span>
+              <span>github.com/Ilay-dev</span>
+            </a>
           </div>
         </div>
       </div>

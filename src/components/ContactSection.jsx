@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { GitHubLogo, MailLogo } from './TechIcon';
 
 const EMAIL_ADDRESS = 'ilay.schoenknecht@gmail.com';
 
@@ -32,20 +33,36 @@ export default function ContactSection({ isGerman, visible }) {
           </p>
         </div>
 
-        <div className="contact-box">
-          <span className="email-text">{EMAIL_ADDRESS}</span>
-          <button type="button" className="copy-btn" onClick={handleCopy}>
-            {copied
-              ? isGerman
-                ? 'Kopiert'
-                : 'Copied'
-              : isGerman
-                ? 'E-Mail kopieren'
-                : 'Copy Email'}
-          </button>
+        <div className="contact-actions">
+          <div className="contact-box">
+            <span className="email-text">
+              <MailLogo size={16} />
+              <span>{EMAIL_ADDRESS}</span>
+            </span>
+            <button type="button" className="copy-btn" onClick={handleCopy}>
+              {copied
+                ? isGerman
+                  ? 'Kopiert'
+                  : 'Copied'
+                : isGerman
+                  ? 'E-Mail kopieren'
+                  : 'Copy Email'}
+            </button>
+          </div>
+
+          <a
+            href="https://github.com/Ilay-dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="contact-github-btn"
+            aria-label="GitHub (@Ilay-dev)"
+            title="GitHub (@Ilay-dev)"
+          >
+            <GitHubLogo size={18} />
+            <span>GitHub</span>
+          </a>
         </div>
       </div>
     </section>
   );
 }
-

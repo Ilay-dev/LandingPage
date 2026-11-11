@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PROJECTS } from '../data/portfolioData';
+import TechIcon, { GitHubLogo } from './TechIcon';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -625,7 +626,8 @@ export default function ProjectsSection({ isGerman, visible }) {
                   <div className="project-parallax-card__tags">
                     {project.tags.map((tag) => (
                       <span key={tag} className="tag">
-                        {tag}
+                        <TechIcon name={tag} size={13} />
+                        <span>{tag}</span>
                       </span>
                     ))}
                   </div>
@@ -636,6 +638,7 @@ export default function ProjectsSection({ isGerman, visible }) {
                     rel="noopener noreferrer"
                     className="project-parallax-card__cta"
                   >
+                    <GitHubLogo size={15} />
                     <span>
                       {isGerman ? 'Repository öffnen' : 'Open Repository'}
                     </span>
