@@ -15,14 +15,14 @@ export default function GallerySection({ isGerman, visible }) {
   const [muted, setMuted] = useState(true);
   const [activeSlideItem, setActiveSlideItem] = useState(null);
   const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth <= 680 : false
+    typeof window !== 'undefined' ? window.innerWidth <= 859 : false
   );
 
   useEffect(() => {
     const onResize = () => {
-      setIsMobile(window.innerWidth <= 680);
+      setIsMobile(window.innerWidth <= 859);
     };
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize, { passive: true });
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
@@ -50,12 +50,12 @@ export default function GallerySection({ isGerman, visible }) {
       );
       const exitEase = exitRaw * exitRaw;
 
-      const minScale = isMobile ? 0.9 : 0.84;
+      const minScale = isMobile ? 0.92 : 0.84;
       const scale =
         (minScale + (1 - minScale) * expandEase) * (1 - exitEase * 0.05);
-      const translateY = (1 - expandEase) * (isMobile ? 24 : 42);
+      const translateY = (1 - expandEase) * (isMobile ? 20 : 42);
       const radius = Math.round(
-        (1 - expandEase) * (isMobile ? 18 : 24) + exitEase * 14
+        (1 - expandEase) * (isMobile ? 16 : 24) + exitEase * 14
       );
 
       frameEl.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
@@ -176,9 +176,9 @@ export default function GallerySection({ isGerman, visible }) {
                 items={items}
                 preset="liquid"
                 intro="bloom"
-                cardHeight={isMobile ? 0.52 : 0.5}
-                gap={isMobile ? 14 : 20}
-                radius={8}
+                cardHeight={isMobile ? 0.54 : 0.5}
+                gap={isMobile ? 16 : 20}
+                radius={isMobile ? 10 : 8}
                 squeeze={0.2}
                 focusOnClick
                 captions
@@ -187,6 +187,7 @@ export default function GallerySection({ isGerman, visible }) {
                 bend={0.43}
                 dispersion={0.77}
                 muted={muted}
+                flatMobile={isMobile}
                 onRequestScrollProgress={handleRequestScrollProgress}
                 onChange={(_index, item) => setActiveSlideItem(item)}
               />

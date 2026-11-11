@@ -229,18 +229,24 @@ const TechText = ({
       const probe = scratchCtx;
       setFont(probe, s, s.fontSize);
       let m = probe.measureText(s.text);
+      const boxLeft0 = Number.isFinite(m.actualBoundingBoxLeft) ? m.actualBoundingBoxLeft : 0;
+      const boxRight0 = Number.isFinite(m.actualBoundingBoxRight) ? m.actualBoundingBoxRight : (m.width || s.fontSize * 3);
+      const boxAsc0 = Number.isFinite(m.actualBoundingBoxAscent) ? m.actualBoundingBoxAscent : s.fontSize * 0.78;
+      const boxDesc0 = Number.isFinite(m.actualBoundingBoxDescent) ? m.actualBoundingBoxDescent : s.fontSize * 0.22;
       const fit = Math.min(
         1,
-        (width * 0.9) /
-          Math.max(m.actualBoundingBoxLeft + m.actualBoundingBoxRight, 1),
-        (height * 0.66) /
-          Math.max(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent, 1)
+        (width * 0.9) / Math.max(boxLeft0 + boxRight0, 1),
+        (height * 0.66) / Math.max(boxAsc0 + boxDesc0, 1)
       );
-      const size = s.fontSize * fit;
+      const size = Math.max(12, s.fontSize * fit);
       setFont(probe, s, size);
       m = probe.measureText(s.text);
-      const inkWidth = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
-      const inkHeight = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+      const mLeft = Number.isFinite(m.actualBoundingBoxLeft) ? m.actualBoundingBoxLeft : 0;
+      const mRight = Number.isFinite(m.actualBoundingBoxRight) ? m.actualBoundingBoxRight : (m.width || size * 3);
+      const mAscent = Number.isFinite(m.actualBoundingBoxAscent) ? m.actualBoundingBoxAscent : size * 0.78;
+      const mDescent = Number.isFinite(m.actualBoundingBoxDescent) ? m.actualBoundingBoxDescent : size * 0.22;
+      const inkWidth = mLeft + mRight;
+      const inkHeight = mAscent + mDescent;
       const margin = width * 0.05;
       const start =
         s.align === 'left'
@@ -248,24 +254,25 @@ const TechText = ({
           : s.align === 'right'
             ? width - margin - inkWidth
             : (width - inkWidth) / 2;
-      const x = start + m.actualBoundingBoxLeft;
-      const baseline = (height - inkHeight) / 2 + m.actualBoundingBoxAscent;
-      const xHeight = baseline - probe.measureText('x').actualBoundingBoxAscent;
-      const capHeight =
-        baseline - probe.measureText('H').actualBoundingBoxAscent;
-      const ascender =
-        baseline - probe.measureText('d').actualBoundingBoxAscent;
-      const descender =
-        baseline + probe.measureText('p').actualBoundingBoxDescent;
-      const top = baseline - m.actualBoundingBoxAscent;
-      const bottom = baseline + m.actualBoundingBoxDescent;
+      const x = start + mLeft;
+      const baseline = (height - inkHeight) / 2 + mAscent;
+      const xAsc = probe.measureText('x').actualBoundingBoxAscent;
+      const hAsc = probe.measureText('H').actualBoundingBoxAscent;
+      const dAsc = probe.measureText('d').actualBoundingBoxAscent;
+      const pDesc = probe.measureText('p').actualBoundingBoxDescent;
+      const xHeight = baseline - (Number.isFinite(xAsc) ? xAsc : size * 0.52);
+      const capHeight = baseline - (Number.isFinite(hAsc) ? hAsc : size * 0.72);
+      const ascender = baseline - (Number.isFinite(dAsc) ? dAsc : size * 0.76);
+      const descender = baseline + (Number.isFinite(pDesc) ? pDesc : size * 0.22);
+      const top = baseline - mAscent;
+      const bottom = baseline + mDescent;
       const inkTop = Math.min(top, capHeight) - 2;
       const inkBottom = Math.max(bottom, baseline) + 2;
       const next = {
         size,
         baseline,
-        left: x - m.actualBoundingBoxLeft,
-        right: x + m.actualBoundingBoxRight,
+        left: x - mLeft,
+        right: x + mRight,
         top,
         bottom,
         lines: [
@@ -295,14 +302,18 @@ const TechText = ({
         const own = probe.measureText(char);
         const gx = x + probe.measureText(prefix).width - own.width;
         if (!char.trim()) return;
+        const cLeft = Number.isFinite(own.actualBoundingBoxLeft) ? own.actualBoundingBoxLeft : 0;
+        const cRight = Number.isFinite(own.actualBoundingBoxRight) ? own.actualBoundingBoxRight : Math.max(4, own.width || size * 0.5);
+        const cAsc = Number.isFinite(own.actualBoundingBoxAscent) ? own.actualBoundingBoxAscent : mAscent;
+        const cDesc = Number.isFinite(own.actualBoundingBoxDescent) ? own.actualBoundingBoxDescent : mDescent;
         const base = {
           char,
           x: gx,
           box: {
-            x1: gx - own.actualBoundingBoxLeft,
-            y1: baseline - own.actualBoundingBoxAscent,
-            x2: gx + own.actualBoundingBoxRight,
-            y2: baseline + own.actualBoundingBoxDescent,
+            x1: gx - cLeft,
+            y1: baseline - cAsc,
+            x2: gx + cRight,
+            y2: baseline + cDesc,
           },
         };
         const kept = previous[glyphs.length];

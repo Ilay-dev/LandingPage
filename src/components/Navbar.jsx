@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
 
 export default function Navbar({ isGerman, onToggleLanguage }) {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 860 : true
+  );
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsDesktop(window.innerWidth >= 860);
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const items = [
     { label: 'Home', href: '#header' },
-    { label: isGerman ? 'Work' : 'Work', href: '#projects' },
-    { label: isGerman ? '3D & Blender' : '3D & Blender', href: '#blender' },
+    { label: isGerman ? 'Projekte' : 'Work', href: '#projects' },
+    { label: '3D-Renders', href: '#blender' },
     { label: isGerman ? 'Kontakt' : 'Contact', href: '#contact' },
   ];
 
@@ -38,30 +50,32 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
           </div>
         </div>
 
-        <div className="nav-gooey-wrapper">
-          <GooeyNav
-            items={items}
-            initialActiveIndex={0}
-            theme="dark"
-            size="md"
-            frame={true}
-            particleCount={15}
-            spread={56}
-            animationTime={600}
-            timeVariance={300}
-            gooeyness={0.5}
-            wobble={0.5}
-            hoverEffect={true}
-            onChange={(index, item) => {
-              if (item?.href && item.href.startsWith('#')) {
-                const target = document.querySelector(item.href);
-                if (target) {
-                  target.scrollIntoView({ behavior: 'smooth' });
+        {isDesktop && (
+          <div className="nav-gooey-wrapper">
+            <GooeyNav
+              items={items}
+              initialActiveIndex={0}
+              theme="dark"
+              size="md"
+              frame={true}
+              particleCount={15}
+              spread={56}
+              animationTime={600}
+              timeVariance={300}
+              gooeyness={0.5}
+              wobble={0.5}
+              hoverEffect={true}
+              onChange={(_index, item) => {
+                if (item?.href && item.href.startsWith('#')) {
+                  const target = document.querySelector(item.href);
+                  if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }
-              }
-            }}
-          />
-        </div>
+              }}
+            />
+          </div>
+        )}
       </div>
     </header>
   );

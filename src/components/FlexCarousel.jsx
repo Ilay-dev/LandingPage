@@ -247,6 +247,7 @@ const FlexCarousel = React.forwardRef(({
   captions = true,
   captureWheel = false,
   muted = true,
+  flatMobile = false,
   scrollProgress,
   onRequestScrollProgress,
   onChange,
@@ -255,6 +256,9 @@ const FlexCarousel = React.forwardRef(({
   style
 }, forwardedRef) => {
   const containerRef = useRef(null);
+  const flatTrackRef = useRef(null);
+  const flatCardElsRef = useRef([]);
+  const flatMediaElsRef = useRef([]);
   const settingsRef = useRef(null);
   const itemsRef = useRef(items);
   const engineRef = useRef(null);
@@ -311,6 +315,7 @@ const FlexCarousel = React.forwardRef(({
       interval,
       captureWheel,
       muted,
+      flatMobile,
       scrollProgress: scrollProgressRef.current
     };
     engineRef.current?.syncAudio(muted, active);
@@ -321,7 +326,444 @@ const FlexCarousel = React.forwardRef(({
     engineRef.current?.setItems(itemsRef.current);
   }, [itemsKey]);
 
+  // =========================================================================
+  // MOBILE LATERAL MODE (`flatMobile = true`)
+  // Pure sideways movement without vertical edge distortion, using native
+  // GPU-composited <video> and <img> elements for 100% iOS Safari & Android reliability.
+  // =========================================================================
   useEffect(() => {
+    if (!flatMobile) return undefined;
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    setRevealed(true);
+    let width = Math.max(1, container.clientWidth);
+    let height = Math.max(1, container.clientHeight);
+    let pos = 0;
+    let vel = 0;
+    let goal = 0;
+    let mode = 'scroll';
+    let raf = 0;
+    let last = performance.now();
+    let visible = true;
+    let alive = true;
+    let dirty = true;
+    let activeIndex = -1;
+    let focusIndex = -1;
+    let focusTarget = 0;
+    let focusT = 0;
+    let focusV = 0;
+    let liftVal = 1;
+    let energy = 0;
+    let lastPos = 0;
+    let resnap = true;
+
+    const aspects = itemsRef.current.map(it => it.aspect || (isVideoItem(it) ? 9 / 16 : 0.8));
+
+    const pointer = {
+      x: 0,
+      y: 0,
+      down: false,
+      id: -1,
+      startX: 0,
+      startY: 0,
+      startPos: 0,
+      dragging: false,
+      touch: false,
+      samples: []
+    };
+
+    const getMetrics = s => {
+      const cardH = Math.max(140, s.cardHeight * height);
+      const maxCardW = Math.max(160, width * 0.82);
+      const fixed = FIT_ASPECT[s.fit];
+      const widths = aspects.map(a => Math.min(maxCardW, Math.max(cardH * 0.56, (fixed || a) * cardH)));
+      const centers = [];
+      let cursor = 0;
+      for (let i = 0; i < widths.length; i++) {
+        centers.push(cursor + widths[i] / 2);
+        cursor += widths[i] + s.gap;
+      }
+      return { cardH, widths, centers, gap: s.gap, loop: Math.max(cursor, 1) };
+    };
+
+    const nearest = (m, at) => {
+      let best = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < m.centers.length; i++) {
+        const dist = Math.abs(m.centers[i] - at);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      }
+      return best;
+    };
+
+    const snapPoint = (m, at) => {
+      const i = nearest(m, at);
+      return m.centers[i] ?? 0;
+    };
+
+    const syncAudio = (isMuted, currentIdx) => {
+      flatMediaElsRef.current.forEach((el, idx) => {
+        if (el && el.tagName === 'VIDEO') {
+          const item = itemsRef.current[idx];
+          const shouldUnmute = !isMuted && item?.hasAudio && idx === currentIdx;
+          el.muted = !shouldUnmute;
+          if (visible && el.paused) {
+            el.play().catch(() => {});
+          }
+        }
+      });
+    };
+
+    const frame = now => {
+      raf = 0;
+      if (!alive) return;
+      const s = settingsRef.current;
+      const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
+      last = now;
+      const n = itemsRef.current.length;
+      if (!s || !n) return;
+
+      width = Math.max(1, container.clientWidth);
+      height = Math.max(1, container.clientHeight);
+      const m = getMetrics(s);
+      let animating = false;
+
+      if (resnap) {
+        goal = m.centers[0] ?? 0;
+        pos = goal;
+        vel = 0;
+        resnap = false;
+      }
+
+      if (typeof s.scrollProgress === 'number' && !pointer.dragging && n > 0) {
+        const p = clamp01(s.scrollProgress);
+        const rawIdx = p * Math.max(0, n - 1);
+        const idx = Math.min(n - 1, Math.floor(rawIdx));
+        const nextIdx = Math.min(n - 1, idx + 1);
+        const frac = rawIdx - idx;
+        const easedFrac = frac * 0.45 + easeInOut(frac) * 0.55;
+        const c0 = m.centers[idx] ?? 0;
+        const c1 = m.centers[nextIdx] ?? c0;
+        goal = c0 + (c1 - c0) * easedFrac;
+        if (focusTarget > 0 && Math.abs(goal - pos) > 12) {
+          focusTarget = 0;
+          setFocusOpen(false);
+        }
+        mode = 'scroll';
+      }
+
+      if (!pointer.dragging) {
+        const stiffness = mode === 'scroll' ? 260 : 90;
+        const damping = 2 * Math.sqrt(stiffness);
+        const steps = Math.ceil(dt / (1 / 240));
+        const h = dt / steps;
+        for (let i = 0; i < steps; i++) {
+          const acc = stiffness * (goal - pos) - damping * vel;
+          vel += acc * h;
+          pos += vel * h;
+        }
+        if (Math.abs(goal - pos) < 0.05 && Math.abs(vel) < 0.5) {
+          pos = goal;
+          vel = 0;
+        } else {
+          animating = true;
+        }
+      } else {
+        animating = true;
+      }
+
+      const current = nearest(m, pos);
+      if (current !== activeIndex) {
+        activeIndex = current;
+        setActive(current);
+        syncAudio(s.muted, current);
+        callbacksRef.current.onChange?.(current, itemsRef.current[current]);
+      }
+
+      const travel = Math.abs(pos - lastPos) / dt;
+      lastPos = pos;
+      const energyTarget = Math.min(travel / 2600, 1);
+      energy += (energyTarget - energy) * (1 - Math.exp(-dt / (energyTarget > energy ? 0.07 : 0.32)));
+      if (energy > 0.001) animating = true;
+
+      const focusStiffness = 64;
+      focusV += (focusStiffness * (focusTarget - focusT) - 2 * Math.sqrt(focusStiffness) * focusV) * dt;
+      focusT += focusV * dt;
+      if (Math.abs(focusTarget - focusT) < 0.0005 && Math.abs(focusV) < 0.001) {
+        focusT = focusTarget;
+        focusV = 0;
+      } else {
+        animating = true;
+      }
+
+      const focusAmount = clamp01(focusT);
+      const focusEase = easeInOut(focusAmount);
+      const focusW = focusIndex >= 0 && focusIndex < n ? m.widths[focusIndex] : m.cardH;
+      const focusScale = Math.max(1, Math.min(1.22, (height * 0.78) / m.cardH, (width * 0.92) / focusW));
+      const nextLift = 1 + (focusScale - 1) * focusEase;
+      if (Math.abs(nextLift - liftVal) > 0.0005) {
+        liftVal = nextLift;
+        container.style.setProperty('--flex-carousel-lift', liftVal.toFixed(4));
+      }
+
+      const homeX = width / 2;
+      const shrink = 1 - clamp01(s.squeeze) * 0.5 * energy;
+
+      for (let i = 0; i < n; i++) {
+        const cardEl = flatCardElsRef.current[i];
+        const mediaEl = flatMediaElsRef.current[i];
+        if (!cardEl) continue;
+
+        const w = m.widths[i];
+        const rel = m.centers[i] - pos;
+        let x = homeX + rel;
+        let scale = shrink;
+        let alpha = 1;
+
+        const distNorm = Math.min(1, Math.abs(rel) / Math.max(width * 0.65, 1));
+        scale *= 1 - distNorm * 0.06;
+
+        if (focusAmount > 0) {
+          if (i === focusIndex) {
+            scale *= 1 + (focusScale - 1) * focusEase;
+          } else {
+            const part = easeInOut(focusAmount);
+            x += Math.sign(rel || 1) * part * width * 0.55;
+            alpha *= 1 - part * 0.85;
+          }
+        }
+
+        const leftPx = x - w / 2;
+        cardEl.style.width = `${w.toFixed(1)}px`;
+        cardEl.style.height = `${m.cardH.toFixed(1)}px`;
+        cardEl.style.borderRadius = `${s.radius}px`;
+        cardEl.style.opacity = alpha.toFixed(3);
+        cardEl.style.transform = `translate3d(${leftPx.toFixed(2)}px, -50%, 0) scale(${scale.toFixed(4)})`;
+        cardEl.style.zIndex = i === current ? '3' : '1';
+
+        if (mediaEl) {
+          const shiftPx = Math.max(-1, Math.min(1, rel / (width * 0.8))) * -12;
+          mediaEl.style.transform = `translate3d(${shiftPx.toFixed(1)}px, 0, 0) scale(1.08)`;
+          if (mediaEl.tagName === 'VIDEO' && visible && mediaEl.paused) {
+            mediaEl.play().catch(() => {});
+          }
+        }
+      }
+
+      dirty = false;
+      if (visible && (animating || dirty || pointer.down)) {
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    const start = () => {
+      if (raf || !visible || !alive) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    };
+
+    const localPoint = e => {
+      const rect = container.getBoundingClientRect();
+      return [e.clientX - rect.left, e.clientY - rect.top];
+    };
+
+    const onPointerDown = e => {
+      if (e.button !== undefined && e.button > 0) return;
+      const [x, y] = localPoint(e);
+      pointer.down = true;
+      pointer.id = e.pointerId;
+      pointer.touch = e.pointerType === 'touch';
+      pointer.startX = x;
+      pointer.startY = y;
+      pointer.x = x;
+      pointer.y = y;
+      pointer.startPos = pos;
+      pointer.dragging = false;
+      pointer.samples = [{ x, t: performance.now() }];
+      dirty = true;
+      start();
+    };
+
+    const onPointerMove = e => {
+      const [x, y] = localPoint(e);
+      pointer.x = x;
+      pointer.y = y;
+      if (pointer.down && e.pointerId === pointer.id) {
+        const dx = x - pointer.startX;
+        const dy = y - pointer.startY;
+        const slop = pointer.touch ? 10 : 5;
+        if (!pointer.dragging) {
+          if (pointer.touch && Math.abs(dy) > slop && Math.abs(dy) > Math.abs(dx)) {
+            pointer.down = false;
+            return;
+          }
+          if (Math.abs(dx) > slop) {
+            pointer.dragging = true;
+            pointer.startX = x;
+            pointer.startPos = pos;
+            focusTarget = 0;
+            setFocusOpen(false);
+            try {
+              container.setPointerCapture(e.pointerId);
+            } catch {
+              // ignore
+            }
+          }
+        }
+        if (pointer.dragging) {
+          const s = settingsRef.current;
+          const m = getMetrics(s);
+          const minCenter = m.centers[0] ?? 0;
+          const maxCenter = m.centers[m.centers.length - 1] ?? 0;
+          pos = Math.max(minCenter - 40, Math.min(maxCenter + 40, pointer.startPos - (x - pointer.startX)));
+          goal = pos;
+          vel = 0;
+          if (s && callbacksRef.current.onRequestScrollProgress && m.centers.length > 1) {
+            const span = Math.max(1, maxCenter - minCenter);
+            const nextP = clamp01((pos - minCenter) / span);
+            scrollProgressRef.current = nextP;
+            s.scrollProgress = nextP;
+            callbacksRef.current.onRequestScrollProgress(nextP, false);
+          }
+          const now = performance.now();
+          pointer.samples.push({ x, t: now });
+          while (pointer.samples.length > 2 && now - pointer.samples[0].t > 100) pointer.samples.shift();
+        }
+      }
+      dirty = true;
+      start();
+    };
+
+    const onPointerUp = e => {
+      if (!pointer.down || e.pointerId !== pointer.id) return;
+      pointer.down = false;
+      const s = settingsRef.current;
+      if (!s) return;
+      const m = getMetrics(s);
+      if (pointer.dragging) {
+        pointer.dragging = false;
+        const now = performance.now();
+        const first = pointer.samples[0];
+        const lastSample = pointer.samples[pointer.samples.length - 1];
+        let velocity = 0;
+        if (first && lastSample && lastSample.t > first.t && now - lastSample.t < 80) {
+          velocity = -((lastSample.x - first.x) / (lastSample.t - first.t)) * 1000;
+        }
+        vel = velocity;
+        const landing = snapPoint(m, pos + velocity * 0.24);
+        goal = landing;
+        if (callbacksRef.current.onRequestScrollProgress && m.centers.length > 1) {
+          const minCenter = m.centers[0] ?? 0;
+          const maxCenter = m.centers[m.centers.length - 1] ?? 0;
+          const span = Math.max(1, maxCenter - minCenter);
+          const nextP = clamp01((goal - minCenter) / span);
+          scrollProgressRef.current = nextP;
+          s.scrollProgress = nextP;
+          callbacksRef.current.onRequestScrollProgress(nextP, false);
+        }
+        mode = 'scroll';
+        start();
+        return;
+      }
+
+      if (focusTarget > 0) {
+        focusTarget = 0;
+        setFocusOpen(false);
+        dirty = true;
+        start();
+        return;
+      }
+
+      const [x] = localPoint(e);
+      const clickedIdx = nearest(m, pos + (x - width / 2));
+      if (clickedIdx === activeIndex && s.focusOnClick) {
+        focusIndex = clickedIdx;
+        focusTarget = 1;
+        setFocusOpen(true);
+        dirty = true;
+        start();
+      } else if (m.centers.length > 1) {
+        const nextP = clamp01(clickedIdx / Math.max(1, m.centers.length - 1));
+        scrollProgressRef.current = nextP;
+        s.scrollProgress = nextP;
+        callbacksRef.current.onRequestScrollProgress?.(nextP, true);
+        mode = 'scroll';
+        dirty = true;
+        start();
+      }
+    };
+
+    const onPointerCancel = () => {
+      pointer.down = false;
+      pointer.dragging = false;
+      dirty = true;
+      start();
+    };
+
+    container.addEventListener('pointerdown', onPointerDown, { passive: true });
+    container.addEventListener('pointermove', onPointerMove, { passive: true });
+    container.addEventListener('pointerup', onPointerUp, { passive: true });
+    container.addEventListener('pointercancel', onPointerCancel, { passive: true });
+
+    const resizeObserver = new ResizeObserver(() => {
+      dirty = true;
+      start();
+    });
+    resizeObserver.observe(container);
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) {
+        flatMediaElsRef.current.forEach(el => {
+          if (el && el.tagName === 'VIDEO' && el.paused) {
+            el.play().catch(() => {});
+          }
+        });
+      }
+      start();
+    });
+    intersectionObserver.observe(container);
+
+    engineRef.current = {
+      wake: () => {
+        dirty = true;
+        start();
+      },
+      setItems: () => {
+        resnap = true;
+        dirty = true;
+        start();
+      },
+      syncAudio
+    };
+
+    dirty = true;
+    start();
+
+    return () => {
+      alive = false;
+      visible = false;
+      engineRef.current = null;
+      cancelAnimationFrame(raf);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      container.removeEventListener('pointerdown', onPointerDown);
+      container.removeEventListener('pointermove', onPointerMove);
+      container.removeEventListener('pointerup', onPointerUp);
+      container.removeEventListener('pointercancel', onPointerCancel);
+    };
+  }, [flatMobile, itemsKey]);
+
+  // =========================================================================
+  // DESKTOP WEBGL2 LIQUID LENS MODE (`flatMobile = false`)
+  // Full React-Bits WebGL2 Liquid Lens shader on PC.
+  // =========================================================================
+  useEffect(() => {
+    if (flatMobile) return undefined;
     const container = containerRef.current;
     if (!container) return undefined;
 
@@ -403,7 +845,7 @@ const FlexCarousel = React.forwardRef(({
       })
     });
 
-    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
     const anisotropy = renderer.getExtension('EXT_texture_filter_anisotropic') ? 8 : 0;
 
     let slots = [];
@@ -475,7 +917,6 @@ const FlexCarousel = React.forwardRef(({
       if (videoSlot) {
         const video = document.createElement('video');
         slot.video = video;
-        video.crossOrigin = 'anonymous';
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
@@ -551,7 +992,6 @@ const FlexCarousel = React.forwardRef(({
       }
 
       const image = new Image();
-      image.crossOrigin = 'anonymous';
       image.decoding = 'async';
       image.onload = () => {
         if (!alive || !slots.includes(slot)) return;
@@ -780,6 +1220,8 @@ const FlexCarousel = React.forwardRef(({
       renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
       renderer.setSize(width, height);
       target.setSize(Math.max(2, Math.round(width * renderer.dpr)), Math.max(2, Math.round(height * renderer.dpr)));
+      target.texture.bind();
+      gl.generateMipmap(gl.TEXTURE_2D);
       lensUniforms.tScene.value = target.texture;
       dirty = true;
     };
@@ -1396,7 +1838,7 @@ const FlexCarousel = React.forwardRef(({
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
-  }, []);
+  }, [flatMobile]);
 
   const current = list[active] || list[0];
   const label = current ? current.title || current.alt || `Image ${active + 1}` : '';
@@ -1404,13 +1846,57 @@ const FlexCarousel = React.forwardRef(({
   return (
     <div
       ref={containerRef}
-      className={`flex-carousel ${className}`.trim()}
+      className={`flex-carousel ${flatMobile ? 'flex-carousel--flat-mobile' : ''} ${className}`.trim()}
       style={{ ...style, '--flex-carousel-half': `${Math.min(Math.max(cardHeight, 0.05), 1) * 50}%` }}
       role="region"
       aria-roledescription="carousel"
       aria-label="3D and Blender Gallery Carousel"
       tabIndex={0}
     >
+      {flatMobile && (
+        <div ref={flatTrackRef} className="flex-carousel__flat-stage" aria-hidden="true">
+          {list.map((item, idx) => {
+            const video = isVideoItem(item);
+            return (
+              <div
+                key={item.src || idx}
+                ref={el => {
+                  flatCardElsRef.current[idx] = el;
+                }}
+                className="flex-carousel__flat-card"
+              >
+                {video ? (
+                  <video
+                    ref={el => {
+                      flatMediaElsRef.current[idx] = el;
+                    }}
+                    src={item.src}
+                    muted={muted || !item.hasAudio || idx !== active}
+                    loop
+                    playsInline
+                    webkit-playsinline=""
+                    autoPlay
+                    preload="metadata"
+                    className="flex-carousel__flat-media"
+                  />
+                ) : (
+                  <img
+                    ref={el => {
+                      flatMediaElsRef.current[idx] = el;
+                    }}
+                    src={item.src}
+                    alt={item.alt || item.title || ''}
+                    decoding="async"
+                    loading="eager"
+                    draggable={false}
+                    className="flex-carousel__flat-media"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
       {captions && current && revealed && (
         <div className="flex-carousel__caption" aria-hidden="true">
           <span key={active} className="flex-carousel__title">

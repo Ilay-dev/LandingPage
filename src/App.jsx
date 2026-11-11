@@ -7,70 +7,70 @@ import SpecsSection from './components/SpecsSection';
 import ContactSection from './components/ContactSection';
 import Lightbox from './components/Lightbox';
 
+class SafeSection extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [isGerman, setIsGerman] = useState(() => {
-    const lang = navigator.language || navigator.userLanguage || 'en';
-    return lang.toLowerCase().startsWith('de');
+    try {
+      const lang =
+        (typeof navigator !== 'undefined' &&
+          (navigator.language || navigator.userLanguage)) ||
+        'en';
+      return String(lang).toLowerCase().startsWith('de');
+    } catch {
+      return false;
+    }
   });
 
-  const [loaderHidden, setLoaderHidden] = useState(false);
-  const [visibleSections, setVisibleSections] = useState([
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
   const [lightboxItem, setLightboxItem] = useState(null);
 
   useEffect(() => {
     document.documentElement.lang = isGerman ? 'de' : 'en';
   }, [isGerman]);
 
-  useEffect(() => {
-    const timers = [];
-
-    timers.push(
-      setTimeout(() => {
-        setLoaderHidden(true);
-        [0, 1, 2, 3, 4].forEach((idx) => {
-          timers.push(
-            setTimeout(() => {
-              setVisibleSections((prev) => {
-                const next = [...prev];
-                next[idx] = true;
-                return next;
-              });
-            }, idx * 120)
-          );
-        });
-      }, 1200)
-    );
-
-    return () => timers.forEach((t) => clearTimeout(t));
-  }, []);
-
   return (
     <>
-      <div id="loader" className={loaderHidden ? 'hidden' : ''}>
-        <div className="loader-line" />
-      </div>
-
-      <Navbar
-        isGerman={isGerman}
-        onToggleLanguage={() => setIsGerman((prev) => !prev)}
-      />
+      <SafeSection>
+        <Navbar
+          isGerman={isGerman}
+          onToggleLanguage={() => setIsGerman((prev) => !prev)}
+        />
+      </SafeSection>
 
       <main className="container">
-        <Hero isGerman={isGerman} visible={visibleSections[0]} />
-        <ProjectsSection isGerman={isGerman} visible={visibleSections[1]} />
-        <GallerySection
-          isGerman={isGerman}
-          visible={visibleSections[2]}
-          onOpenLightbox={setLightboxItem}
-        />
-        <SpecsSection isGerman={isGerman} visible={visibleSections[3]} />
-        <ContactSection isGerman={isGerman} visible={visibleSections[4]} />
+        <SafeSection>
+          <Hero isGerman={isGerman} visible={true} />
+        </SafeSection>
+        <SafeSection>
+          <ProjectsSection isGerman={isGerman} visible={true} />
+        </SafeSection>
+        <SafeSection>
+          <GallerySection
+            isGerman={isGerman}
+            visible={true}
+            onOpenLightbox={setLightboxItem}
+          />
+        </SafeSection>
+        <SafeSection>
+          <SpecsSection isGerman={isGerman} visible={true} />
+        </SafeSection>
+        <SafeSection>
+          <ContactSection isGerman={isGerman} visible={true} />
+        </SafeSection>
       </main>
 
       <footer className="footer">
@@ -88,4 +88,3 @@ export default function App() {
     </>
   );
 }
-
