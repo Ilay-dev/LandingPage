@@ -3,20 +3,155 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="ico.png" />
-    <link rel="apple-touch-icon" href="ico.png" />
-    <title>Ilay Schönknecht (Ilay-dev) | Portfolio</title>
+    <meta name="theme-color" content="#09090b" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- Primary Title & SEO Meta -->
+    <title>Ilay Schönknecht (Ilay-dev) – Software Developer &amp; 3D Artist</title>
+    <meta
+      name="description"
+      content="Official portfolio of Ilay Schönknecht (Ilay-dev) — interactive WebGL &amp; React apps, photorealistic Blender 3D renders, Python tools, and ESP32 hardware."
+    />
+    <meta
+      name="keywords"
+      content="Ilay Schönknecht, Ilay-dev, ilay.dev, Software Developer, 3D Artist, Blender, Cycles, WebGL, Three.js, Gaussian Splatting, React, Python, ESP32, Portfolio"
+    />
     <meta name="author" content="Ilay Schönknecht" />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="Ilay Schönknecht (Ilay-dev) | Portfolio" />
-    <meta property="og:description" content="Open-source software projects, 3D rendering, and hardware prototypes by Ilay Schönknecht." />
-    <meta property="og:url" content="https://ilay-dev.github.io/" />
+    <meta name="creator" content="Ilay Schönknecht (Ilay-dev)" />
+    <meta name="application-name" content="Ilay Schönknecht (Ilay-dev)" />
+    <meta name="apple-mobile-web-app-title" content="Ilay-dev" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://ilay-dev.github.io/" />
+
+    <!-- Favicons & App Icons (Google Search 48x48 multiple compliant) -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- OpenGraph / Discord / LinkedIn / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta name="description" content="Personal portfolio and open-source projects by Ilay Schönknecht (Ilay-dev). Web development, 3D modeling, and software engineering." />
-    <meta name="keywords" content="ilay-dev, ilay.dev, Ilay Schönknecht, ilay, developer, portfolio, github projects, software development, 3D artist, Blender" />
+    <meta property="og:site_name" content="Ilay Schönknecht (Ilay-dev)" />
+    <meta property="og:url" content="https://ilay-dev.github.io/" />
+    <meta property="og:title" content="Ilay Schönknecht (Ilay-dev) – Software Developer &amp; 3D Artist" />
+    <meta
+      property="og:description"
+      content="Explore interactive WebGL &amp; React applications, photorealistic Blender 3D environments, Python utilities, and ESP32 hardware projects by Ilay Schönknecht."
+    />
+    <meta property="og:image" content="https://ilay-dev.github.io/favicon-512x512.png" />
+    <meta property="og:image:secure_url" content="https://ilay-dev.github.io/favicon-512x512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Ilay Schönknecht (Ilay-dev) Logo &amp; 3D Portfolio" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="de_DE" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ilay Schönknecht (Ilay-dev) – Software Developer &amp; 3D Artist" />
+    <meta
+      name="twitter:description"
+      content="Explore interactive WebGL &amp; React applications, photorealistic Blender 3D environments, Python utilities, and ESP32 hardware projects by Ilay Schönknecht."
+    />
+    <meta name="twitter:image" content="https://ilay-dev.github.io/favicon-512x512.png" />
+    <meta name="twitter:image:alt" content="Ilay Schönknecht (Ilay-dev) Portfolio" />
+
+    <!-- Schema.org Structured Data (Fixes Google Search "GitHub Pages documentation" Site Name & Breadcrumbs) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://ilay-dev.github.io/#website",
+            "name": "Ilay Schönknecht (Ilay-dev)",
+            "alternateName": [
+              "Ilay-dev",
+              "Ilay Schönknecht",
+              "Ilay Schönknecht Portfolio",
+              "ilay-dev.github.io"
+            ],
+            "url": "https://ilay-dev.github.io/",
+            "description": "Official portfolio of Ilay Schönknecht (Ilay-dev) — interactive WebGL & React apps, photorealistic Blender 3D renders, Python tools, and ESP32 hardware.",
+            "inLanguage": ["en", "de"],
+            "publisher": {
+              "@id": "https://ilay-dev.github.io/#person"
+            }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://ilay-dev.github.io/#person",
+            "name": "Ilay Schönknecht",
+            "alternateName": "Ilay-dev",
+            "jobTitle": "Software Developer & 3D Artist",
+            "url": "https://ilay-dev.github.io/",
+            "image": "https://ilay-dev.github.io/favicon-512x512.png",
+            "email": "mailto:ilay.schoenknecht@gmail.com",
+            "sameAs": [
+              "https://github.com/Ilay-dev"
+            ],
+            "knowsAbout": [
+              "Web Development",
+              "JavaScript",
+              "React",
+              "WebGL",
+              "Three.js",
+              "Gaussian Splatting",
+              "Blender",
+              "Cycles Rendering",
+              "3D Modeling",
+              "Python",
+              "C++",
+              "ESP32"
+            ]
+          },
+          {
+            "@type": "ProfilePage",
+            "@id": "https://ilay-dev.github.io/#profilepage",
+            "url": "https://ilay-dev.github.io/",
+            "name": "Ilay Schönknecht (Ilay-dev) – Software Developer & 3D Artist",
+            "isPartOf": {
+              "@id": "https://ilay-dev.github.io/#website"
+            },
+            "about": {
+              "@id": "https://ilay-dev.github.io/#person"
+            },
+            "mainEntity": {
+              "@id": "https://ilay-dev.github.io/#person"
+            },
+            "breadcrumb": {
+              "@id": "https://ilay-dev.github.io/#breadcrumb"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://ilay-dev.github.io/#breadcrumb",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Portfolio",
+                "item": "https://ilay-dev.github.io/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>

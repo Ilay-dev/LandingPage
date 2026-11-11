@@ -1,163 +1,199 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { GALLERY_ITEMS } from '../data/portfolioData';
-import DepthCanvas from './DepthCanvas';
+import FlexCarousel from './FlexCarousel';
 
-export default function GallerySection({ isGerman, visible, onOpenLightbox }) {
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [holoMuted, setHoloMuted] = useState(true);
-  const holoVideoRef = useRef(null);
+const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+const easeOutCubic = (v) => 1 - Math.pow(1 - clamp01(v), 3);
 
-  // Shared pointer & gyroscope lerp state for all WebGL DepthCanvas instances
-  const pointerRef = useRef({
-    targetX: 0,
-    targetY: 0,
-    currentX: 0,
-    currentY: 0,
-  });
+export default function GallerySection({ isGerman, visible }) {
+  const trackRef = useRef(null);
+  const frameRef = useRef(null);
+  const headerRef = useRef(null);
+  const progressFillRef = useRef(null);
+  const carouselRef = useRef(null);
+
+  const [muted, setMuted] = useState(true);
+  const [activeSlideItem, setActiveSlideItem] = useState(null);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 680 : false
+  );
 
   useEffect(() => {
-    let rafId = null;
-
-    const handleMouseMove = (e) => {
-      pointerRef.current.targetX = (e.clientX / window.innerWidth - 0.5) * 2.0;
-      pointerRef.current.targetY = -(e.clientY / window.innerHeight - 0.5) * 2.0;
+    const onResize = () => {
+      setIsMobile(window.innerWidth <= 680);
     };
-
-    const handleOrientation = (e) => {
-      if (e.gamma !== null && e.beta !== null) {
-        const x = e.gamma / 45.0;
-        const y = (e.beta - 45) / 45.0;
-        pointerRef.current.targetX = Math.max(-1, Math.min(1, x));
-        pointerRef.current.targetY = Math.max(-1, Math.min(1, -y));
-      }
-    };
-
-    const requestGyroPermission = () => {
-      if (
-        typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof DeviceOrientationEvent.requestPermission === 'function'
-      ) {
-        DeviceOrientationEvent.requestPermission().catch(console.error);
-      }
-    };
-
-    const updateLerp = () => {
-      const p = pointerRef.current;
-      p.currentX += (p.targetX - p.currentX) * 0.08;
-      p.currentY += (p.targetY - p.currentY) * 0.08;
-      rafId = requestAnimationFrame(updateLerp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('deviceorientation', handleOrientation);
-    document.body.addEventListener('click', requestGyroPermission, { once: true });
-    rafId = requestAnimationFrame(updateLerp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('deviceorientation', handleOrientation);
-      document.body.removeEventListener('click', requestGyroPermission);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const toggleHoloAudio = (e) => {
-    e.stopPropagation();
-    const vid = holoVideoRef.current;
-    if (!vid) return;
-    vid.muted = !vid.muted;
-    setHoloMuted(vid.muted);
+  useEffect(() => {
+    let rafId = 0;
+
+    const updateParallax = () => {
+      rafId = 0;
+      const track = trackRef.current;
+      const frameEl = frameRef.current;
+      if (!track || !frameEl) return;
+
+      const rect = track.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const totalPinnedScroll = Math.max(1, rect.height - vh);
+      const pinnedScrolled = -rect.top;
+
+      // 1. Entry expansion into Fullscreen (completes right as sticky locks at top: 0)
+      const expandRaw = clamp01((0.82 * vh - rect.top) / (0.82 * vh));
+      const expandEase = easeOutCubic(expandRaw);
+
+      // 2. Subtle exit ease in the final 10% of pinned scroll
+      const exitRaw = clamp01(
+        (pinnedScrolled - (totalPinnedScroll - 0.1 * vh)) / (0.1 * vh)
+      );
+      const exitEase = exitRaw * exitRaw;
+
+      const minScale = isMobile ? 0.9 : 0.84;
+      const scale =
+        (minScale + (1 - minScale) * expandEase) * (1 - exitEase * 0.05);
+      const translateY = (1 - expandEase) * (isMobile ? 24 : 42);
+      const radius = Math.round(
+        (1 - expandEase) * (isMobile ? 18 : 24) + exitEase * 14
+      );
+
+      frameEl.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
+      frameEl.style.borderRadius = `${radius}px`;
+
+      if (headerRef.current) {
+        const headerY = (1 - expandEase) * -14;
+        headerRef.current.style.transform = `translate3d(0, ${headerY.toFixed(1)}px, 0)`;
+      }
+
+      // 3. Horizontal carousel scrub across the Fullscreen pinned range
+      const scrubStart = 0.04 * vh;
+      const scrubEnd = Math.max(scrubStart + 1, totalPinnedScroll - 0.08 * vh);
+      const nextProgress = clamp01(
+        (pinnedScrolled - scrubStart) / (scrubEnd - scrubStart)
+      );
+
+      if (progressFillRef.current) {
+        progressFillRef.current.style.transform = `scaleX(${nextProgress.toFixed(4)})`;
+      }
+
+      carouselRef.current?.setScrollProgress(nextProgress);
+    };
+
+    const onScroll = () => {
+      if (!rafId) {
+        rafId = requestAnimationFrame(updateParallax);
+      }
+    };
+
+    updateParallax();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [isMobile]);
+
+  const handleRequestScrollProgress = (targetProgress, smooth = false) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const vh = window.innerHeight || 1;
+    const rect = track.getBoundingClientRect();
+    const trackTopDoc = rect.top + window.scrollY;
+    const totalPinnedScroll = Math.max(1, rect.height - vh);
+    const scrubStart = 0.04 * vh;
+    const scrubEnd = Math.max(scrubStart + 1, totalPinnedScroll - 0.08 * vh);
+    const targetY =
+      trackTopDoc + scrubStart + clamp01(targetProgress) * (scrubEnd - scrubStart);
+    window.scrollTo({
+      top: targetY,
+      behavior: smooth ? 'smooth' : 'auto',
+    });
   };
 
-  const filters = [
-    { key: 'all', label: isGerman ? 'Alle' : 'All' },
-    { key: 'video', label: isGerman ? 'Animationen' : 'Animations' },
-    { key: 'render', label: isGerman ? '3D-Renders' : '3D Stills' },
-  ];
+  const items = useMemo(() => {
+    return GALLERY_ITEMS.map((item) => ({
+      ...item,
+      title:
+        typeof item.title === 'object'
+          ? isGerman
+            ? item.title.de
+            : item.title.en
+          : item.title || item.alt,
+      subtitle:
+        typeof item.subtitle === 'object'
+          ? isGerman
+            ? item.subtitle.de
+            : item.subtitle.en
+          : item.subtitle,
+    }));
+  }, [isGerman]);
 
-  const filteredItems =
-    activeFilter === 'all'
-      ? GALLERY_ITEMS
-      : GALLERY_ITEMS.filter((item) => item.category === activeFilter);
+  const currentItem = activeSlideItem || items[0];
 
   return (
     <section
-      className={`fade-up ${visible ? 'visible' : ''}`}
+      className={`gallery-parallax-section ${visible ? 'visible' : ''}`}
       id="blender"
     >
-      <div className="section-top">
-        <div>
-          <h2 className="section-title">
-            {isGerman ? '3D-Kunst & Blender' : '3D Art & Blender'}
-          </h2>
-          <p className="section-desc">
-            {isGerman
-              ? 'Animationen, kameragetrackte Szenen, Produktvisualisierungen und interaktive 3D-Renders.'
-              : 'Animations, camera-tracked scenes, product visualizations, and interactive depth-mapped renders.'}
-          </p>
-        </div>
+      <div ref={trackRef} className="gallery-parallax-track">
+        <div className="gallery-parallax-sticky">
+          <div ref={frameRef} className="gallery-parallax-frame">
+            <div ref={headerRef} className="gallery-parallax-header">
+              <div className="gallery-parallax-title-wrap">
+                <h2 className="section-title">3D-Renders</h2>
+                <div className="gallery-parallax-progress" aria-hidden="true">
+                  <div
+                    ref={progressFillRef}
+                    className="gallery-parallax-progress-fill"
+                  />
+                </div>
+              </div>
 
-        <div className="filter-group">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className={`filter-btn ${activeFilter === f.key ? 'active' : ''}`}
-              onClick={() => setActiveFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="gallery-grid" id="galleryGrid">
-        {filteredItems.map((item) => (
-          <div
-            key={item.id}
-            className={`gallery-frame ${item.spanClass}`}
-            onClick={() => onOpenLightbox(item)}
-          >
-            {item.type === 'video' ? (
-              <>
-                <video
-                  ref={item.hasAudio ? holoVideoRef : null}
-                  className="gallery-item"
-                  autoPlay
-                  loop
-                  muted={item.hasAudio ? holoMuted : true}
-                  playsInline
+              {currentItem?.hasAudio && (
+                <button
+                  type="button"
+                  className={`filter-btn ${!muted ? 'active' : ''}`}
+                  onClick={() => setMuted((prev) => !prev)}
                 >
-                  <source src={item.src} type="video/mp4" />
-                </video>
-                {item.hasAudio && (
-                  <button
-                    type="button"
-                    className={`audio-toggle ${!holoMuted ? 'active' : ''}`}
-                    onClick={toggleHoloAudio}
-                  >
-                    {holoMuted
-                      ? isGerman
-                        ? 'Ton aus'
-                        : 'Muted'
-                      : isGerman
-                        ? 'Ton an'
-                        : 'Audio On'}
-                  </button>
-                )}
-              </>
-            ) : (
-              <DepthCanvas
-                src={item.src}
-                depthSrc={item.depthSrc}
-                alt={item.alt}
-                pointerRef={pointerRef}
+                  {muted
+                    ? isGerman
+                      ? 'Ton aus'
+                      : 'Muted'
+                    : isGerman
+                      ? 'Ton an'
+                      : 'Audio On'}
+                </button>
+              )}
+            </div>
+
+            <div className="gallery-parallax-carousel-wrap">
+              <FlexCarousel
+                ref={carouselRef}
+                items={items}
+                preset="liquid"
+                intro="bloom"
+                cardHeight={isMobile ? 0.52 : 0.5}
+                gap={isMobile ? 14 : 20}
+                radius={8}
+                squeeze={0.2}
+                focusOnClick
+                captions
+                captureWheel={false}
+                lensWidth={1.34}
+                bend={0.43}
+                dispersion={0.77}
+                muted={muted}
+                onRequestScrollProgress={handleRequestScrollProgress}
+                onChange={(_index, item) => setActiveSlideItem(item)}
               />
-            )}
+            </div>
           </div>
-        ))}
+        </div>
       </div>
     </section>
   );
 }
-

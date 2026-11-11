@@ -6,12 +6,12 @@ const useIsomorphicLayoutEffect =
 
 const THEMES = {
   dark: {
-    '--gn-frame': '#121215',
-    '--gn-frame-edge': '#242429',
-    '--gn-frame-highlight': 'rgba(255, 255, 255, 0.04)',
-    '--gn-frame-shadow': 'none',
+    '--gn-frame': 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.018) 100%)',
+    '--gn-frame-edge': 'rgba(255, 255, 255, 0.1)',
+    '--gn-frame-highlight': 'rgba(255, 255, 255, 0.18)',
+    '--gn-frame-shadow': '0 4px 20px -2px rgba(0, 0, 0, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.04)',
     '--gn-ink': '#f4f4f5',
-    '--gn-muted': '#a1a1aa',
+    '--gn-muted': '#d4d4d8',
   },
   light: {
     '--gn-frame': 'rgba(240, 240, 243, 0.8)',

@@ -32,8 +32,6 @@
   border-radius: 999px;
   background: var(--gn-frame);
   box-shadow: var(--gn-frame-shadow);
-  -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  backdrop-filter: blur(20px) saturate(1.6);
 }
 
 .gooey-nav__stage {
