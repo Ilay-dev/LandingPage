@@ -1028,55 +1028,188 @@ body {
 }
 
 /* ==========================================================================
-   TECHNICAL SPECIFICATIONS SECTION
+   TECHNICAL SPECIFICATIONS SECTION (ARBEITSBEREICHE PARALLAX BENTO)
    ========================================================================== */
-.specs-table {
+.specs-parallax-section {
+  position: relative;
+}
+
+.specs-section-header {
+  align-items: flex-end;
+}
+
+.specs-bento-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  background-color: var(--color-30-surface);
-  border: 1px solid var(--color-30-border);
-  border-radius: 6px;
+  gap: 1.5rem;
+  align-items: stretch;
 }
 
-.spec-col {
-  padding: 2rem;
-  border-right: 1px solid var(--color-30-border);
+.spec-parallax-card {
+  --s-watermark-y: 0px;
+  --s-layer-1: 0px;
+  --s-layer-2: 0px;
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.35rem;
+  padding: 2rem 1.85rem;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.032) 0%,
+      rgba(255, 255, 255, 0.008) 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    ),
+    var(--color-30-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 20px 48px -14px rgba(0, 0, 0, 0.68);
+  will-change: transform;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.spec-col:last-child {
-  border-right: none;
+.spec-parallax-card:hover {
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-.spec-col-top {
+.spec-parallax-card__watermark {
+  position: absolute;
+  right: 1rem;
+  top: -1.1rem;
+  font-family: var(--font-mono);
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgba(244, 244, 245, 0.032);
+  pointer-events: none;
+  user-select: none;
+  transform: translate3d(0, var(--s-watermark-y, 0px), 0);
+  will-change: transform;
+  z-index: 0;
+}
+
+.spec-parallax-card__header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
 }
 
-.spec-index {
+.spec-parallax-card__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+}
+
+.spec-parallax-card__num {
+  color: var(--color-10-accent);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.14rem 0.48rem;
+  border-radius: 999px;
+}
+
+.spec-parallax-card__domain {
   color: var(--color-30-text-dim);
+  letter-spacing: 0.05em;
 }
 
 .spec-col-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    ),
+    var(--color-60-bg);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: var(--color-10-accent);
+  flex-shrink: 0;
+}
+
+.spec-blueprint {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 118px;
+  border-radius: 8px;
   background-color: var(--color-60-bg);
   border: 1px solid var(--color-30-border);
-  color: var(--color-10-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.spec-blueprint__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.spec-blueprint__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.spec-blueprint__layer-1 {
+  transform: translate3d(0, var(--s-layer-1, 0px), 0);
+}
+
+.spec-blueprint__layer-2 {
+  transform: translate3d(0, var(--s-layer-2, 0px), 0);
+}
+
+.spec-blueprint__hud {
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  color: var(--color-30-text-dim);
+  pointer-events: none;
+}
+
+.spec-parallax-card__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
 .spec-heading {
-  font-size: 1.2rem;
+  font-size: 1.32rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
   margin: 0;
   color: var(--color-10-accent);
 }
@@ -1084,76 +1217,239 @@ body {
 .spec-text {
   color: var(--color-30-text);
   font-size: 0.94rem;
+  line-height: 1.62;
   margin: 0;
 }
 
 .spec-list {
+  position: relative;
+  z-index: 2;
   list-style: none;
-  padding: 1rem 0 0 0;
+  padding: 1.15rem 0 0 0;
   margin: auto 0 0 0;
   border-top: 1px solid var(--color-30-border);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.55rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-10-accent);
+  gap: 0.5rem;
 }
 
-.spec-list-item {
+.spec-tech-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.38rem;
+  font-family: var(--font-mono);
+  font-size: 0.71rem;
+  color: var(--color-10-accent);
+  background-color: var(--color-60-bg);
+  border: 1px solid var(--color-30-border);
+  padding: 0.36rem 0.5rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.spec-tech-pill:hover {
+  border-color: var(--color-30-border-strong);
+  background-color: var(--color-30-surface-hover);
 }
 
 .spec-tech-logo {
-  color: var(--color-30-text);
+  color: var(--color-10-accent);
+  opacity: 0.9;
   flex-shrink: 0;
 }
 
 /* ==========================================================================
-   CONTACT & FOOTER
+   CONTACT & FOOTER (ARCHITECTURAL LIQUID GLASS CONSOLE)
    ========================================================================== */
-.contact-section {
-  background-color: var(--color-30-surface);
+.contact-parallax-section {
+  position: relative;
+}
+
+.contact-architectural-card {
+  --c-watermark-y: 0px;
+  --c-grid-y: 0px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 3rem;
+  align-items: center;
+  padding: 3rem 3rem;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.036) 0%,
+      rgba(255, 255, 255, 0.008) 50%,
+      rgba(255, 255, 255, 0.024) 100%
+    ),
+    var(--color-30-surface);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 64px -12px rgba(0, 0, 0, 0.72);
+}
+
+.contact-architectural-card__grid {
+  position: absolute;
+  inset: -40px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 32px 32px;
+  transform: translate3d(0, var(--c-grid-y, 0px), 0);
+  will-change: transform;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.contact-architectural-card__watermark {
+  position: absolute;
+  right: 2rem;
+  bottom: -1.8rem;
+  font-family: var(--font-mono);
+  font-size: clamp(6rem, 11vw, 9.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgba(244, 244, 245, 0.03);
+  pointer-events: none;
+  user-select: none;
+  transform: translate3d(0, var(--c-watermark-y, 0px), 0);
+  will-change: transform;
+  z-index: 0;
+}
+
+.contact-architectural-card__left {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.contact-status-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.55rem;
+  padding: 0.34rem 0.85rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--color-30-text);
+  background-color: var(--color-60-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--color-10-accent);
+  box-shadow: 0 0 8px rgba(244, 244, 245, 0.7);
+}
+
+.contact-headline {
+  font-size: clamp(1.85rem, 3vw, 2.45rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  margin: 0;
+  color: var(--color-10-accent);
+}
+
+.contact-lead {
+  color: var(--color-30-text);
+  font-size: 1rem;
+  line-height: 1.68;
+  margin: 0;
+  max-width: 520px;
+}
+
+.contact-domain-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.35rem;
+}
+
+.contact-domain-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-30-text);
+  background-color: var(--color-60-bg);
   border: 1px solid var(--color-30-border);
-  border-radius: 6px;
-  padding: 2.75rem;
+  padding: 0.24rem 0.62rem;
+  border-radius: 999px;
+}
+
+.contact-domain-pill svg {
+  color: var(--color-10-accent);
+}
+
+.contact-architectural-card__right {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-module {
+  background-color: var(--color-60-bg);
+  border: 1px solid var(--color-30-border);
+  border-radius: 10px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.contact-module__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 2rem;
-}
-
-.contact-copy h2 {
-  font-size: 1.6rem;
-  font-weight: 600;
-  margin: 0 0 0.4rem 0;
-  letter-spacing: -0.02em;
-}
-
-.contact-copy p {
-  color: var(--color-30-text);
-  margin: 0;
-  font-size: 0.98rem;
-}
-
-.contact-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.contact-module__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-30-text-dim);
+  letter-spacing: 0.05em;
+}
+
+.contact-module__direct-link {
+  color: var(--color-30-text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.contact-module__direct-link:hover {
+  color: var(--color-10-accent);
 }
 
 .contact-box {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 1rem;
-  background-color: var(--color-60-bg);
-  padding: 0.5rem 0.5rem 0.5rem 1.15rem;
+  justify-content: space-between;
+  gap: 0.85rem;
+  background-color: var(--color-30-surface);
+  padding: 0.45rem 0.45rem 0.45rem 0.95rem;
   border: 1px solid var(--color-30-border);
-  border-radius: 4px;
+  border-radius: 999px;
 }
 
 .email-text {
@@ -1162,43 +1458,116 @@ body {
   gap: 0.5rem;
   color: var(--color-10-accent);
   font-family: var(--font-mono);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .copy-btn {
-  background-color: var(--color-10-accent);
+  background: linear-gradient(180deg, #ffffff 0%, #e4e4e7 100%);
   color: var(--color-60-bg);
-  border: none;
-  padding: 0.6rem 1.15rem;
-  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
   font-weight: 500;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .copy-btn:hover {
-  background-color: var(--color-10-accent-hover);
+  background: linear-gradient(180deg, #f4f4f5 0%, #d4d4d8 100%);
+  transform: translateY(-1px);
 }
 
-.contact-github-btn {
+.copy-btn.copied {
+  background: #f4f4f5;
+}
+
+.contact-github-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background-color: var(--color-60-bg);
+  border: 1px solid var(--color-30-border);
+  border-radius: 10px;
+  padding: 1.05rem 1.25rem;
+  text-decoration: none;
+  color: var(--color-10-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.contact-github-card:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  background-color: var(--color-30-surface-hover);
+  transform: translateY(-1px);
+}
+
+.contact-github-card__left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.contact-github-card__icon {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background-color: var(--color-60-bg);
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    ),
+    var(--color-30-surface);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--color-10-accent);
-  border: 1px solid var(--color-30-border);
-  padding: 0.75rem 1.1rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  flex-shrink: 0;
 }
 
-.contact-github-btn:hover {
-  border-color: var(--color-30-border-strong);
-  background-color: var(--color-30-surface-hover);
+.contact-github-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.contact-github-card__title {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-10-accent);
+}
+
+.contact-github-card__sub {
+  font-size: 0.8rem;
+  color: var(--color-30-text);
+}
+
+.contact-github-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-10-accent);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .footer {
@@ -1296,25 +1665,14 @@ body {
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
-  .projects-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .gallery-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .media-ultrawide {
-    grid-column: span 2;
-    aspect-ratio: 16 / 9;
-  }
-  .specs-table {
+  .specs-bento-grid {
     grid-template-columns: 1fr;
+    gap: 1.35rem;
   }
-  .spec-col {
-    border-right: none;
-    border-bottom: 1px solid var(--color-30-border);
-  }
-  .spec-col:last-child {
-    border-bottom: none;
+  .contact-architectural-card {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2.25rem 2rem;
   }
 }
 
@@ -1366,14 +1724,6 @@ body {
   .tech-text-hero-wrap {
     height: 200px !important;
   }
-
-  .project-carousel-slide {
-    padding: 1.25rem 1rem;
-  }
-
-  .project-slide-title {
-    font-size: 1.35rem;
-  }
 }
 
 @media (max-width: 680px) {
@@ -1381,8 +1731,6 @@ body {
     padding: 2.5rem 1.25rem 4.5rem;
     gap: 4.5rem;
   }
-  .projects-grid,
-  .gallery-grid,
   .hero-meta-grid {
     grid-template-columns: 1fr;
   }
@@ -1393,22 +1741,41 @@ body {
   .meta-cell:last-child {
     border-bottom: none;
   }
-  .media-vertical,
-  .media-horizontal,
-  .media-ultrawide {
-    grid-column: span 1;
+  .spec-parallax-card {
+    padding: 1.45rem 1.2rem;
+    border-radius: 10px;
   }
-  .contact-section {
-    padding: 1.75rem;
+  .spec-list {
+    grid-template-columns: 1fr;
+  }
+  .contact-architectural-card {
+    padding: 1.65rem 1.2rem;
+    border-radius: 10px;
+    gap: 1.5rem;
   }
   .contact-box {
     flex-direction: column;
     width: 100%;
-    padding: 0.85rem;
+    padding: 0.75rem;
+    border-radius: 10px;
     align-items: stretch;
+  }
+  .email-text {
+    justify-content: center;
+    font-size: 0.82rem;
   }
   .copy-btn {
     width: 100%;
+    text-align: center;
+  }
+  .contact-github-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .contact-github-card__cta {
+    width: 100%;
+    justify-content: center;
   }
 }
+
 
