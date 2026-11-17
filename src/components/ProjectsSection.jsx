@@ -383,7 +383,6 @@ function ProjectSchematic({ id }) {
       );
 
     case '06':
-    default:
       // ESP32-Cam — Embedded Optical Sensor & Wi-Fi Telemetry Stream
       return (
         <div className="project-blueprint" aria-hidden="true">
@@ -441,6 +440,146 @@ function ProjectSchematic({ id }) {
             <span>OV2640 // MJPEG</span>
             <span>240 MHZ DUAL-CORE</span>
             <span>RTSP / HTTP</span>
+          </div>
+        </div>
+      );
+
+    case '07':
+    default:
+      // DialDisp — ESP32-C3 Wireless BLE HID Rotary Knob, 24-LED Halo Ring & 2.01" IPS TFT
+      return (
+        <div className="project-blueprint" aria-hidden="true">
+          <div className="project-blueprint__grid" />
+          <svg
+            className="project-blueprint__svg project-blueprint__layer-1"
+            viewBox="0 0 360 220"
+            fill="none"
+          >
+            <circle
+              cx="118"
+              cy="102"
+              r="62"
+              stroke="rgba(244,244,245,0.22)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
+            <circle
+              cx="118"
+              cy="102"
+              r="36"
+              stroke="rgba(244,244,245,0.34)"
+              strokeWidth="1.1"
+            />
+            <rect
+              x="214"
+              y="48"
+              width="86"
+              height="108"
+              rx="8"
+              stroke="rgba(244,244,245,0.38)"
+              strokeWidth="1.2"
+              fill="rgba(9,9,11,0.55)"
+            />
+            <rect
+              x="222"
+              y="58"
+              width="70"
+              height="88"
+              rx="4"
+              stroke="rgba(244,244,245,0.2)"
+              strokeWidth="1"
+            />
+            <path
+              d="M 180 92 L 214 92 M 180 112 L 214 112"
+              stroke="rgba(244,244,245,0.28)"
+              strokeWidth="1"
+              strokeDasharray="3 3"
+            />
+          </svg>
+          <svg
+            className="project-blueprint__svg project-blueprint__layer-2"
+            viewBox="0 0 360 220"
+            fill="none"
+          >
+            {Array.from({ length: 24 }).map((_, i) => {
+              const angle = ((i / 24) * Math.PI * 2) - Math.PI / 2;
+              const x = 118 + Math.cos(angle) * 49;
+              const y = 102 + Math.sin(angle) * 49;
+              const activeLed = i <= 15;
+              return (
+                <circle
+                  key={i}
+                  cx={x.toFixed(2)}
+                  cy={y.toFixed(2)}
+                  r={activeLed ? 2.4 : 1.7}
+                  fill={
+                    activeLed
+                      ? 'rgba(244,244,245,0.9)'
+                      : 'rgba(244,244,245,0.24)'
+                  }
+                />
+              );
+            })}
+            <circle
+              cx="118"
+              cy="102"
+              r="22"
+              stroke="rgba(244,244,245,0.82)"
+              strokeWidth="1.35"
+              fill="rgba(9,9,11,0.72)"
+            />
+            <line
+              x1="118"
+              y1="102"
+              x2="130"
+              y2="89"
+              stroke="#f4f4f5"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+            <circle cx="118" cy="102" r="3" fill="#f4f4f5" />
+            <rect
+              x="234"
+              y="68"
+              width="34"
+              height="6"
+              rx="3"
+              fill="rgba(244,244,245,0.45)"
+            />
+            <circle
+              cx="257"
+              cy="98"
+              r="14"
+              stroke="rgba(244,244,245,0.35)"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M 257 84 A 14 14 0 1 1 245 105"
+              stroke="#f4f4f5"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <rect
+              x="232"
+              y="126"
+              width="50"
+              height="6"
+              rx="3"
+              fill="rgba(244,244,245,0.2)"
+            />
+            <rect
+              x="232"
+              y="126"
+              width="33"
+              height="6"
+              rx="3"
+              fill="rgba(244,244,245,0.88)"
+            />
+          </svg>
+          <div className="project-blueprint__hud project-blueprint__layer-3">
+            <span>ESP32-C3 // BLE HID</span>
+            <span>24x WS2812B RING</span>
+            <span>240×296 IPS TFT</span>
           </div>
         </div>
       );

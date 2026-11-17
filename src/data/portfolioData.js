@@ -71,6 +71,18 @@ export const PROJECTS = [
     },
     tags: ['ESP32', 'C / C++', 'Embedded'],
   },
+  {
+    id: '07',
+    title: 'DialDisp',
+    type: 'Repository',
+    url: 'https://github.com/Ilay-dev/DialDisp',
+    categories: ['system', '3d'],
+    desc: {
+      en: 'A 3D-printed wireless BLE HID rotary desk controller powered by an ESP32-C3, featuring a 2.01" IPS TFT display, a 24-LED NeoPixel halo ring, and 7 interactive control & ambient modes.',
+      de: 'Ein 3D-gedruckter kabelloser BLE-HID-Drehcontroller auf ESP32-C3-Basis mit 2,01" IPS-TFT-Display, 24-LED-NeoPixel-Ring und 7 interaktiven Steuerungs- und Ambient-Modi.',
+    },
+    tags: ['ESP32-C3', 'C / C++', '3D Printing'],
+  },
 ];
 
 export const GALLERY_ITEMS = [
@@ -140,22 +152,6 @@ export const GALLERY_ITEMS = [
     aspect: 9 / 16,
   },
   {
-    id: 'diego',
-    type: 'image',
-    category: 'render',
-    src: 'src/Diego.png',
-    alt: 'Diego 3D Render',
-    title: {
-      en: 'Character & Lighting Study',
-      de: 'Charakter- & Lichtstudie',
-    },
-    subtitle: {
-      en: 'Blender 3D Still',
-      de: 'Blender 3D-Render',
-    },
-    aspect: 16 / 9,
-  },
-  {
     id: 'forest',
     type: 'image',
     category: 'render',
@@ -170,6 +166,39 @@ export const GALLERY_ITEMS = [
       de: 'Volumetrischer Natur-Render',
     },
     aspect: 9 / 16,
+  },
+  {
+    id: 'realism',
+    type: 'video',
+    category: 'video',
+    src: 'src/realism_v20001-0228_mit_ton.mp4',
+    hasAudio: true,
+    alt: 'Photorealistic Glassware Tabletop Animation',
+    title: {
+      en: 'Tabletop Glassware Study',
+      de: 'Fotorealistische Glas-Studie',
+    },
+    subtitle: {
+      en: 'Cycles Realism & Sound · Video',
+      de: 'Cycles Realismus & Sound · Video',
+    },
+    aspect: 9 / 16,
+  },
+  {
+    id: 'manhattan',
+    type: 'image',
+    category: 'render',
+    src: 'src/Manhatten_v2.png',
+    alt: 'Inverted Manhattan Skyline 3D Render',
+    title: {
+      en: 'Inverted Manhattan Skyline',
+      de: 'Invertierte Manhattan-Skyline',
+    },
+    subtitle: {
+      en: 'Surreal Architecture Render',
+      de: 'Surrealer Architektur-Render',
+    },
+    aspect: 16 / 9,
   },
 ];
 
