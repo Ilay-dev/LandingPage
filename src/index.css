@@ -48,57 +48,13 @@ body {
 }
 
 /* ==========================================================================
-   MINIMAL LOADING SCREEN
-   ========================================================================== */
-#loader {
-  position: fixed;
-  inset: 0;
-  background-color: var(--color-60-bg);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.loader-line {
-  width: 0px;
-  height: 1px;
-  background-color: var(--color-10-accent);
-  animation: loadProgress 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards;
-}
-
-@keyframes loadProgress {
-  0% {
-    width: 0px;
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
-  80% {
-    width: 140px;
-    opacity: 1;
-  }
-  100% {
-    width: 140px;
-    opacity: 0;
-  }
-}
-
-#loader.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* ==========================================================================
    NAVIGATION BAR
    ========================================================================== */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
+  contain: layout style;
   background:
     linear-gradient(
       135deg,
@@ -106,14 +62,14 @@ body {
       rgba(255, 255, 255, 0.015) 50%,
       rgba(255, 255, 255, 0.03) 100%
     ),
-    rgba(9, 9, 11, 0.62);
+    rgba(9, 9, 11, 0.65);
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
     inset 0 -1px 0 0 rgba(255, 255, 255, 0.04),
     0 10px 32px -8px rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(26px) saturate(180%);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
 }
 
 .site-header::before {
@@ -214,47 +170,7 @@ body {
   color: var(--color-10-accent);
   border-bottom: 1px solid var(--color-30-border);
   margin-bottom: 1rem;
-}
-
-.projects-controls-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.projects-carousel-wrapper {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  padding: 1rem 0;
-}
-
-.project-carousel-slide {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100%;
-  height: 100%;
-  padding: 2rem;
-}
-
-.project-slide-title {
-  font-size: 1.65rem;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  margin: 0 0 0.75rem 0;
-  color: var(--color-10-accent);
-}
-
-.project-slide-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--color-30-border);
+  contain: layout style paint;
 }
 
 .lang-btn {
@@ -550,7 +466,7 @@ body {
   font-size: 0.84rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .filter-btn:hover {
@@ -644,7 +560,7 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 24px 60px -12px rgba(0, 0, 0, 0.72);
-  will-change: transform;
+  contain: layout style paint;
   transform-origin: center top;
   transition: border-color 0.25s ease;
 }
@@ -675,7 +591,6 @@ body {
   pointer-events: none;
   user-select: none;
   transform: translate3d(0, var(--p-watermark-y, 0px), 0);
-  will-change: transform;
   z-index: 0;
 }
 
@@ -792,6 +707,7 @@ body {
   border: 1px solid var(--color-30-border);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
+  contain: layout style paint;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -813,7 +729,6 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  will-change: transform;
 }
 
 .project-blueprint__layer-1 {
@@ -904,7 +819,8 @@ body {
   border: 1px solid var(--color-30-border);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
   overflow: clip;
-  will-change: transform, border-radius;
+  contain: layout style;
+  will-change: transform;
   transform-origin: center center;
   display: flex;
   flex-direction: column;
@@ -924,7 +840,6 @@ body {
   justify-content: space-between;
   gap: 1.5rem;
   pointer-events: none;
-  will-change: transform;
 }
 
 .gallery-parallax-header button {
@@ -951,7 +866,6 @@ body {
   background-color: var(--color-10-accent);
   transform-origin: left center;
   transform: scaleX(0);
-  will-change: transform;
 }
 
 .gallery-parallax-carousel-wrap {
@@ -1068,7 +982,7 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 20px 48px -14px rgba(0, 0, 0, 0.68);
-  will-change: transform;
+  contain: layout style paint;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -1089,7 +1003,6 @@ body {
   pointer-events: none;
   user-select: none;
   transform: translate3d(0, var(--s-watermark-y, 0px), 0);
-  will-change: transform;
   z-index: 0;
 }
 
@@ -1154,6 +1067,7 @@ body {
   border: 1px solid var(--color-30-border);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
+  contain: layout style paint;
 }
 
 .spec-blueprint__grid {
@@ -1172,7 +1086,6 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  will-change: transform;
 }
 
 .spec-blueprint__layer-1 {
@@ -1291,6 +1204,7 @@ body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
     0 24px 64px -12px rgba(0, 0, 0, 0.72);
+  contain: layout style paint;
 }
 
 .contact-architectural-card__grid {
@@ -1301,7 +1215,6 @@ body {
     linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
   background-size: 32px 32px;
   transform: translate3d(0, var(--c-grid-y, 0px), 0);
-  will-change: transform;
   pointer-events: none;
   z-index: 0;
 }
@@ -1319,7 +1232,6 @@ body {
   pointer-events: none;
   user-select: none;
   transform: translate3d(0, var(--c-watermark-y, 0px), 0);
-  will-change: transform;
   z-index: 0;
 }
 
@@ -1775,6 +1687,15 @@ body {
   .contact-github-card__cta {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .fade-up {
+    transition: none;
   }
 }
 

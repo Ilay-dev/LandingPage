@@ -4,7 +4,7 @@ import TechIcon, { GitHubLogo } from './TechIcon';
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
-function ProjectSchematic({ id }) {
+const ProjectSchematic = React.memo(function ProjectSchematic({ id }) {
   switch (id) {
     case '01':
       // SimpleSplat — 3D Gaussian Splatting Point-Cloud & Covariance Ellipsoids
@@ -639,64 +639,82 @@ function ProjectSchematic({ id }) {
         </div>
       );
   }
-}
+});
 
-export default function ProjectsSection({ isGerman, visible }) {
+function ProjectsSection({ isGerman, visible }) {
   const sectionRef = useRef(null);
   const itemRefs = useRef([]);
   const cardRefs = useRef([]);
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
     let rafId = 0;
+    let inView = true;
+    let vh = window.innerHeight || 1;
+    let vw = window.innerWidth || 1;
+    const count = PROJECTS.length;
+    const lastState = Array.from({ length: count }, () => ({
+      tr: '',
+      dim: '',
+      wm: '',
+      l1: '',
+      l2: '',
+      l3: '',
+    }));
 
     const updateProjectsParallax = () => {
       rafId = 0;
-      const vh = window.innerHeight || 1;
-      const vw = window.innerWidth || 1;
-      const isCompact = vw <= 859;
-      let closestIdx = 0;
-      let closestDist = Infinity;
+      if (!inView) return;
 
-      for (let i = 0; i < PROJECTS.length; i++) {
+      const isCompact = vw <= 859;
+      const focalY = vh * 0.44;
+      const invSpan = 1 / (vh * 0.65);
+
+      // Pass 1: Batch ALL DOM reads first (prevents layout thrashing)
+      const itemRects = new Array(count);
+      const cardRects = new Array(count);
+      for (let i = 0; i < count; i++) {
         const itemEl = itemRefs.current[i];
         const cardEl = cardRefs.current[i];
         if (!itemEl || !cardEl) continue;
+        itemRects[i] = itemEl.getBoundingClientRect();
+        cardRects[i] = cardEl.getBoundingClientRect();
+      }
 
-        const rect = itemEl.getBoundingClientRect();
-        const cardRect = cardEl.getBoundingClientRect();
+      // Pass 2: Compute and apply ONLY changed DOM writes
+      let closestIdx = 0;
+      let closestDist = Infinity;
 
-        // Distance of card center from viewport focal line (44% from top)
-        const focalY = vh * 0.44;
+      for (let i = 0; i < count; i++) {
+        const cardEl = cardRefs.current[i];
+        const rect = itemRects[i];
+        const cardRect = cardRects[i];
+        if (!cardEl || !rect || !cardRect) continue;
+
         const cardCenterY = cardRect.top + cardRect.height * 0.5;
-        const normalizedCenter = clamp(
-          (cardCenterY - focalY) / (vh * 0.65),
-          -1,
-          1
-        );
-
         const distFromFocus = Math.abs(cardCenterY - focalY);
         if (distFromFocus < closestDist) {
           closestDist = distFromFocus;
           closestIdx = i;
         }
 
-        // Next item overlap for sticky depth recession
+        // Skip cards far outside viewport
+        if (cardRect.bottom < -vh * 0.6 || cardRect.top > vh * 1.6) continue;
+
+        const normalizedCenter = clamp((cardCenterY - focalY) * invSpan, -1, 1);
+
         let buryProgress = 0;
-        const nextItemEl = itemRefs.current[i + 1];
-        if (nextItemEl) {
-          const nextRect = nextItemEl.getBoundingClientRect();
+        const nextRect = itemRects[i + 1];
+        if (nextRect) {
           const stickyTop = isCompact ? 78 + i * 10 : 108 + i * 16;
           const overlapStart = stickyTop + cardRect.height * 0.85;
           const overlapSpan = Math.max(140, cardRect.height * 0.85);
-          buryProgress = clamp(
-            (overlapStart - nextRect.top) / overlapSpan,
-            0,
-            1
-          );
+          buryProgress = clamp((overlapStart - nextRect.top) / overlapSpan, 0, 1);
         }
 
-        // Entry lift when scrolling up from bottom of viewport
         const entryProgress = clamp((rect.top - vh * 0.72) / (vh * 0.35), 0, 1);
         const scale =
           1 - buryProgress * (isCompact ? 0.032 : 0.048) - entryProgress * 0.03;
@@ -705,40 +723,77 @@ export default function ProjectsSection({ isGerman, visible }) {
           buryProgress * (isCompact ? 8 : 14);
         const dimOverlay = buryProgress * 0.42;
 
-        // Multi-layer internal parallax shifts
         const watermarkY = normalizedCenter * (isCompact ? -22 : -44);
         const layer1Y = normalizedCenter * (isCompact ? -14 : -26);
         const layer2Y = normalizedCenter * (isCompact ? 16 : 32);
         const layer3Y = normalizedCenter * (isCompact ? -8 : -14);
 
-        cardEl.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
-        cardEl.style.setProperty('--p-dim', dimOverlay.toFixed(3));
-        cardEl.style.setProperty(
-          '--p-watermark-y',
-          `${watermarkY.toFixed(1)}px`
-        );
-        cardEl.style.setProperty('--p-layer-1', `${layer1Y.toFixed(1)}px`);
-        cardEl.style.setProperty('--p-layer-2', `${layer2Y.toFixed(1)}px`);
-        cardEl.style.setProperty('--p-layer-3', `${layer3Y.toFixed(1)}px`);
+        const prev = lastState[i];
+        const tr = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
+        const dim = dimOverlay.toFixed(3);
+        const wm = `${watermarkY.toFixed(1)}px`;
+        const l1 = `${layer1Y.toFixed(1)}px`;
+        const l2 = `${layer2Y.toFixed(1)}px`;
+        const l3 = `${layer3Y.toFixed(1)}px`;
+
+        if (prev.tr !== tr) {
+          cardEl.style.transform = tr;
+          prev.tr = tr;
+        }
+        if (prev.dim !== dim) {
+          cardEl.style.setProperty('--p-dim', dim);
+          prev.dim = dim;
+        }
+        if (prev.wm !== wm) {
+          cardEl.style.setProperty('--p-watermark-y', wm);
+          prev.wm = wm;
+        }
+        if (prev.l1 !== l1) {
+          cardEl.style.setProperty('--p-layer-1', l1);
+          prev.l1 = l1;
+        }
+        if (prev.l2 !== l2) {
+          cardEl.style.setProperty('--p-layer-2', l2);
+          prev.l2 = l2;
+        }
+        if (prev.l3 !== l3) {
+          cardEl.style.setProperty('--p-layer-3', l3);
+          prev.l3 = l3;
+        }
       }
 
       setActiveProjectIdx((prev) => (prev !== closestIdx ? closestIdx : prev));
     };
 
-    const onScroll = () => {
-      if (!rafId) {
-        rafId = requestAnimationFrame(updateProjectsParallax);
-      }
+    const schedule = () => {
+      if (!inView || rafId) return;
+      rafId = requestAnimationFrame(updateProjectsParallax);
     };
 
+    const onResize = () => {
+      vh = window.innerHeight || 1;
+      vw = window.innerWidth || 1;
+      schedule();
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) schedule();
+      },
+      { rootMargin: '250px 0px' }
+    );
+    io.observe(section);
+
     updateProjectsParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      io.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
@@ -851,3 +906,5 @@ export default function ProjectsSection({ isGerman, visible }) {
     </section>
   );
 }
+
+export default React.memo(ProjectsSection);

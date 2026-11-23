@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { getOptimalDpr } from '../utils/perf';
 import './GooeyNav.css';
 
 const useIsomorphicLayoutEffect =
@@ -206,10 +207,14 @@ const UNIFORMS = [
 ];
 
 const build = (gl) => {
+  const vs = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fs = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
   const program = gl.createProgram();
-  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX));
-  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT));
+  gl.attachShader(program, vs);
+  gl.attachShader(program, fs);
   gl.linkProgram(program);
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     gl.deleteProgram(program);
     return null;
@@ -327,7 +332,7 @@ const GooeyNav = ({
 
     const measure = () => {
       const box = stage.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = getOptimalDpr(1.75, 1.25);
       view.width = box.width;
       view.height = box.height;
       const outerWidth = box.width + MARGIN * 2;
@@ -356,51 +361,86 @@ const GooeyNav = ({
     };
 
     const trace = (boxes, blobs, smooth) => {
+      if (!boxes.length && !blobs.length) return '';
+      let minX = view.width;
+      let maxX = 0;
+      let minY = view.height;
+      let maxY = 0;
+      for (let i = 0; i < boxes.length; i++) {
+        const b = boxes[i];
+        minX = Math.min(minX, b.cx - b.hw - smooth);
+        maxX = Math.max(maxX, b.cx + b.hw + smooth);
+        minY = Math.min(minY, b.cy - b.hh - smooth);
+        maxY = Math.max(maxY, b.cy + b.hh + smooth);
+      }
+      for (let i = 0; i < blobs.length; i++) {
+        const bl = blobs[i];
+        const pad = bl.r + smooth + Math.abs(bl.tx) + Math.abs(bl.ty);
+        minX = Math.min(minX, bl.x - pad);
+        maxX = Math.max(maxX, bl.x + pad);
+        minY = Math.min(minY, bl.y - pad);
+        maxY = Math.max(maxY, bl.y + pad);
+      }
+      const xStart = Math.max(0, Math.floor(minX));
+      const xEnd = Math.min(view.width, Math.ceil(maxX));
+      const yStart = Math.max(0, Math.floor(minY));
+      const yEnd = Math.min(view.height, Math.ceil(maxY));
+      if (xEnd <= xStart || yEnd <= yStart) return '';
+
+      const invSmooth = 0.5 / smooth;
       const field = (x, y) => {
         let d = 1e5;
-        const merge = (value) => {
-          const h = clamp01(0.5 + (0.5 * (value - d)) / smooth);
-          d = value + (d - value) * h - smooth * h * (1 - h);
-        };
-        for (const box of boxes) {
-          const r = Math.min(box.hw, box.hh);
+        for (let i = 0; i < boxes.length; i++) {
+          const box = boxes[i];
+          const r = box.hw < box.hh ? box.hw : box.hh;
           const qx = Math.abs(x - box.cx) - box.hw + r;
           const qy = Math.abs(y - box.cy) - box.hh + r;
-          merge(
-            Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) +
-              Math.min(Math.max(qx, qy), 0) -
-              r
-          );
+          const mx = qx > 0 ? qx : 0;
+          const my = qy > 0 ? qy : 0;
+          const value =
+            Math.sqrt(mx * mx + my * my) +
+            Math.min(qx > qy ? qx : qy, 0) -
+            r;
+          const h = clamp01(0.5 + (value - d) * invSmooth);
+          d = value + (d - value) * h - smooth * h * (1 - h);
         }
-        for (const blob of blobs) {
+        for (let i = 0; i < blobs.length; i++) {
+          const blob = blobs[i];
           const px = x - blob.x;
           const py = y - blob.y;
           const bx = -blob.tx;
           const by = -blob.ty;
           const span = bx * bx + by * by;
-          const h =
+          const hCap =
             span > 0.0001 ? clamp01((px * bx + py * by) / span) : 0;
-          const value = Math.hypot(px - bx * h, py - by * h) - blob.r;
+          const dx = px - bx * hCap;
+          const dy = py - by * hCap;
+          const value = Math.sqrt(dx * dx + dy * dy) - blob.r;
           if (value > d + smooth) continue;
-          merge(value);
+          const h = clamp01(0.5 + (value - d) * invSmooth);
+          d = value + (d - value) * h - smooth * h * (1 - h);
         }
         return d;
       };
-      const step = 2;
+
+      const stepX = 4;
+      const stepY = 2;
       const parts = [];
-      for (let y = 0; y < view.height; y += 1) {
-        const cy = y + 0.5;
-        let previous = field(0, cy);
-        let start = previous < 0 ? 0 : null;
-        for (let x = step; x <= view.width + step; x += step) {
-          const value = field(Math.min(x, view.width), cy);
+      for (let y = yStart; y < yEnd; y += stepY) {
+        const cy = y + stepY * 0.5;
+        const y2 = y + stepY > view.height ? view.height : y + stepY;
+        let previous = field(xStart, cy);
+        let start = previous < 0 ? xStart : null;
+        for (let x = xStart + stepX; x <= xEnd + stepX; x += stepX) {
+          const sx = x < xEnd ? x : xEnd;
+          const value = field(sx, cy);
           if (previous < 0 !== value < 0) {
             const cross =
-              x - step + (step * previous) / (previous - value);
+              x - stepX + (stepX * previous) / (previous - value);
             if (value < 0) start = cross;
             else if (start !== null) {
               parts.push(
-                `M${start.toFixed(1)},${y}H${cross.toFixed(1)}V${y + 1}H${start.toFixed(1)}Z`
+                `M${start.toFixed(1)},${y}H${cross.toFixed(1)}V${y2}H${start.toFixed(1)}Z`
               );
               start = null;
             }
@@ -409,7 +449,7 @@ const GooeyNav = ({
         }
         if (start !== null)
           parts.push(
-            `M${start.toFixed(1)},${y}H${view.width}V${y + 1}H${start.toFixed(1)}Z`
+            `M${start.toFixed(1)},${y}H${xEnd}V${y2}H${start.toFixed(1)}Z`
           );
       }
       return parts.join('');
@@ -851,6 +891,7 @@ const GooeyNav = ({
         gl.deleteBuffer(pipeline.buffer);
         gl.deleteProgram(pipeline.program);
       }
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
       engineRef.current = null;
     };
   }, [items.length]);
@@ -947,5 +988,5 @@ const GooeyNav = ({
   );
 };
 
-export default GooeyNav;
+export default React.memo(GooeyNav);
 

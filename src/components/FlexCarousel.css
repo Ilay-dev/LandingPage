@@ -47,7 +47,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
   transform-origin: center center;
-  will-change: transform, opacity;
+  contain: layout style paint;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -60,7 +60,6 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  will-change: transform;
 }
 
 .flex-carousel__caption {

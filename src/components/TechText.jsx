@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { getOptimalDpr, isLowEndDevice, prefersReducedMotion } from '../utils/perf';
 import './TechText.css';
 
 const LABEL_FONT = '10px "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
@@ -107,14 +108,14 @@ const TechText = ({
     const scratchCtx = scratch.getContext('2d');
     if (!container || !canvas || !ctx || !scratchCtx) return undefined;
 
-    const reducedMotion = window.matchMedia?.(
-      '(prefers-reduced-motion: reduce)'
-    )?.matches;
+    const reducedMotion = prefersReducedMotion();
+    const lowEnd = isLowEndDevice();
     let width = 1;
     let height = 1;
     let dpr = 1;
     let raf = 0;
     let last = performance.now();
+    let lastSweepDraw = 0;
     let visible = false;
     let alive = true;
     let layoutKey = '';
@@ -132,6 +133,8 @@ const TechText = ({
     let introducing = false;
     let fontsReady = !document.fonts;
     let guideAlpha = 0;
+    let cachedFontFamily = 'sans-serif';
+    let cachedColor = '#f4f4f5';
     const kicks = [];
     const press = { x: 0, y: 0, time: 0, index: -1 };
     const pointer = { x: 0, y: 0, inside: false };
@@ -139,7 +142,14 @@ const TechText = ({
     const lens = { x: 0, y: 0 };
     const frame = { x1: 0, y1: 0, x2: 0, y2: 0, alpha: 0, index: -1 };
 
+    const syncComputedStyle = () => {
+      const cs = getComputedStyle(container);
+      cachedFontFamily = cs.fontFamily || 'sans-serif';
+      cachedColor = cs.color || '#f4f4f5';
+    };
+
     const refreshFonts = () => {
+      syncComputedStyle();
       layoutKey = '';
       wakeRef.current();
     };
@@ -149,14 +159,12 @@ const TechText = ({
       refreshFonts();
     };
 
-    const family = (s) =>
-      s.fontFamily || getComputedStyle(container).fontFamily || 'sans-serif';
+    const family = (s) => s.fontFamily || cachedFontFamily;
     const fontFor = (s, size) => `${s.fontWeight} ${size}px ${family(s)}`;
 
     const palette = (s) => {
-      const current = getComputedStyle(container).color || '#f4f4f5';
       const pick = (value) =>
-        !value || INHERIT.test(String(value).trim()) ? current : value;
+        !value || INHERIT.test(String(value).trim()) ? cachedColor : value;
       return { ink: pick(s.color), accent: pick(s.accentColor) };
     };
 
@@ -763,8 +771,24 @@ const TechText = ({
 
     const tick = (now) => {
       raf = 0;
+      if (!visible || !alive || document.hidden) return;
       const s = settingsRef.current;
       if (!s) return;
+
+      // Throttle passive idle sweep on low-end devices to ~30fps while keeping hover/drag/kick at full 60fps
+      if (
+        lowEnd &&
+        !pointer.inside &&
+        dragging < 0 &&
+        kicks.length === 0 &&
+        !introducing &&
+        now - lastSweepDraw < 31
+      ) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      lastSweepDraw = now;
+
       const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
       last = now;
       const { ink, accent } = palette(s);
@@ -1019,16 +1043,33 @@ const TechText = ({
     };
 
     const wake = () => {
-      if (raf || !visible || !alive) return;
+      if (raf || !visible || !alive || document.hidden) return;
       last = performance.now();
       raf = requestAnimationFrame(tick);
     };
     wakeRef.current = wake;
 
+    const onThemeChange = () => {
+      syncComputedStyle();
+      wake();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      } else {
+        wake();
+      }
+    };
+
     const resize = () => {
+      syncComputedStyle();
       width = Math.max(1, container.clientWidth);
       height = Math.max(1, container.clientHeight);
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = getOptimalDpr(1.75, 1.25);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       layoutKey = '';
@@ -1111,10 +1152,15 @@ const TechText = ({
     resizeObserver.observe(container);
     const intersectionObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      wake();
+      if (!visible && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else if (visible) {
+        wake();
+      }
     });
     intersectionObserver.observe(container);
-    const themeObserver = new MutationObserver(wake);
+    const themeObserver = new MutationObserver(onThemeChange);
     for (const node of [document.documentElement, document.body]) {
       if (node)
         themeObserver.observe(node, {
@@ -1123,7 +1169,8 @@ const TechText = ({
         });
     }
     const schemeQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
-    schemeQuery?.addEventListener?.('change', wake);
+    schemeQuery?.addEventListener?.('change', onThemeChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
     if (document.fonts) document.fonts.ready.then(fontsLoaded, fontsLoaded);
 
     resize();
@@ -1135,7 +1182,8 @@ const TechText = ({
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       themeObserver.disconnect();
-      schemeQuery?.removeEventListener?.('change', wake);
+      schemeQuery?.removeEventListener?.('change', onThemeChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       container.style.cursor = '';
       container.removeEventListener('pointermove', onMove);
       container.removeEventListener('pointerenter', onMove);
@@ -1159,5 +1207,5 @@ const TechText = ({
   );
 };
 
-export default TechText;
+export default React.memo(TechText);
 

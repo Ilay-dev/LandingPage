@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GALLERY_ITEMS } from '../data/portfolioData';
 import FlexCarousel from './FlexCarousel';
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const easeOutCubic = (v) => 1 - Math.pow(1 - clamp01(v), 3);
 
-export default function GallerySection({ isGerman, visible }) {
+function GallerySection({ isGerman, visible }) {
   const trackRef = useRef(null);
   const frameRef = useRef(null);
   const headerRef = useRef(null);
@@ -15,28 +15,38 @@ export default function GallerySection({ isGerman, visible }) {
   const [muted, setMuted] = useState(true);
   const [activeSlideItem, setActiveSlideItem] = useState(null);
   const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth <= 859 : false
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 859px)').matches
+      : false
   );
 
   useEffect(() => {
-    const onResize = () => {
-      setIsMobile(window.innerWidth <= 859);
-    };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
+    const mq = window.matchMedia('(max-width: 859px)');
+    const onChange = (e) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
 
   useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
     let rafId = 0;
+    let inView = true;
+    let vh = window.innerHeight || 1;
+    let lastFrameTr = '';
+    let lastRadius = -1;
+    let lastHeaderTr = '';
+    let lastProgress = -1;
 
     const updateParallax = () => {
       rafId = 0;
-      const track = trackRef.current;
+      if (!inView) return;
       const frameEl = frameRef.current;
-      if (!track || !frameEl) return;
+      if (!frameEl) return;
 
       const rect = track.getBoundingClientRect();
-      const vh = window.innerHeight || 1;
       const totalPinnedScroll = Math.max(1, rect.height - vh);
       const pinnedScrolled = -rect.top;
 
@@ -58,12 +68,23 @@ export default function GallerySection({ isGerman, visible }) {
         (1 - expandEase) * (isMobile ? 16 : 24) + exitEase * 14
       );
 
-      frameEl.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
-      frameEl.style.borderRadius = `${radius}px`;
+      const frameTr = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(4)})`;
+      if (frameTr !== lastFrameTr) {
+        frameEl.style.transform = frameTr;
+        lastFrameTr = frameTr;
+      }
+      if (radius !== lastRadius) {
+        frameEl.style.borderRadius = `${radius}px`;
+        lastRadius = radius;
+      }
 
       if (headerRef.current) {
         const headerY = (1 - expandEase) * -14;
-        headerRef.current.style.transform = `translate3d(0, ${headerY.toFixed(1)}px, 0)`;
+        const headerTr = `translate3d(0, ${headerY.toFixed(1)}px, 0)`;
+        if (headerTr !== lastHeaderTr) {
+          headerRef.current.style.transform = headerTr;
+          lastHeaderTr = headerTr;
+        }
       }
 
       // 3. Horizontal carousel scrub across the Fullscreen pinned range
@@ -73,31 +94,47 @@ export default function GallerySection({ isGerman, visible }) {
         (pinnedScrolled - scrubStart) / (scrubEnd - scrubStart)
       );
 
-      if (progressFillRef.current) {
-        progressFillRef.current.style.transform = `scaleX(${nextProgress.toFixed(4)})`;
-      }
-
-      carouselRef.current?.setScrollProgress(nextProgress);
-    };
-
-    const onScroll = () => {
-      if (!rafId) {
-        rafId = requestAnimationFrame(updateParallax);
+      if (Math.abs(nextProgress - lastProgress) > 0.0002) {
+        lastProgress = nextProgress;
+        if (progressFillRef.current) {
+          progressFillRef.current.style.transform = `scaleX(${nextProgress.toFixed(4)})`;
+        }
+        carouselRef.current?.setScrollProgress(nextProgress);
       }
     };
+
+    const schedule = () => {
+      if (!inView || rafId) return;
+      rafId = requestAnimationFrame(updateParallax);
+    };
+
+    const onResize = () => {
+      vh = window.innerHeight || 1;
+      schedule();
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) schedule();
+      },
+      { rootMargin: '250px 0px' }
+    );
+    io.observe(track);
 
     updateParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      io.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
     };
   }, [isMobile]);
 
-  const handleRequestScrollProgress = (targetProgress, smooth = false) => {
+  const handleRequestScrollProgress = useCallback((targetProgress, smooth = false) => {
     const track = trackRef.current;
     if (!track) return;
     const vh = window.innerHeight || 1;
@@ -112,7 +149,11 @@ export default function GallerySection({ isGerman, visible }) {
       top: targetY,
       behavior: smooth ? 'smooth' : 'auto',
     });
-  };
+  }, []);
+
+  const handleSlideChange = useCallback((_index, item) => {
+    setActiveSlideItem(item);
+  }, []);
 
   const items = useMemo(() => {
     return GALLERY_ITEMS.map((item) => ({
@@ -189,7 +230,7 @@ export default function GallerySection({ isGerman, visible }) {
                 muted={muted}
                 flatMobile={isMobile}
                 onRequestScrollProgress={handleRequestScrollProgress}
-                onChange={(_index, item) => setActiveSlideItem(item)}
+                onChange={handleSlideChange}
               />
             </div>
           </div>
@@ -198,3 +239,5 @@ export default function GallerySection({ isGerman, visible }) {
     </section>
   );
 }
+
+export default React.memo(GallerySection);

@@ -10,7 +10,7 @@ import {
   WebGLLogo,
 } from './TechIcon';
 
-export default function Hero({ isGerman, visible }) {
+function Hero({ isGerman, visible }) {
   return (
     <section
       className={`hero-section fade-up ${visible ? 'visible' : ''}`}
@@ -122,3 +122,5 @@ export default function Hero({ isGerman, visible }) {
     </section>
   );
 }
+
+export default React.memo(Hero);

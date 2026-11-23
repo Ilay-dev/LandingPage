@@ -11,19 +11,27 @@ import {
 const EMAIL_ADDRESS = 'ilay.schoenknecht@gmail.com';
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
-export default function ContactSection({ isGerman, visible }) {
+function ContactSection({ isGerman, visible }) {
   const [copied, setCopied] = useState(false);
+  const sectionRef = useRef(null);
   const cardRef = useRef(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
     let rafId = 0;
+    let inView = false;
+    let vh = window.innerHeight || 1;
+    let lastWm = '';
+    let lastGrid = '';
 
     const updateContactParallax = () => {
       rafId = 0;
+      if (!inView) return;
       const el = cardRef.current;
       if (!el) return;
 
-      const vh = window.innerHeight || 1;
       const rect = el.getBoundingClientRect();
       const centerOffset = clamp(
         (rect.top + rect.height * 0.5 - vh * 0.55) / (vh * 0.65),
@@ -31,26 +39,45 @@ export default function ContactSection({ isGerman, visible }) {
         1
       );
 
-      const watermarkY = centerOffset * -32;
-      const gridY = centerOffset * 18;
-      el.style.setProperty('--c-watermark-y', `${watermarkY.toFixed(1)}px`);
-      el.style.setProperty('--c-grid-y', `${gridY.toFixed(1)}px`);
-    };
-
-    const onScroll = () => {
-      if (!rafId) {
-        rafId = requestAnimationFrame(updateContactParallax);
+      const wm = `${(centerOffset * -32).toFixed(1)}px`;
+      const grid = `${(centerOffset * 18).toFixed(1)}px`;
+      if (wm !== lastWm) {
+        el.style.setProperty('--c-watermark-y', wm);
+        lastWm = wm;
+      }
+      if (grid !== lastGrid) {
+        el.style.setProperty('--c-grid-y', grid);
+        lastGrid = grid;
       }
     };
 
-    updateContactParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    const schedule = () => {
+      if (!inView || rafId) return;
+      rafId = requestAnimationFrame(updateContactParallax);
+    };
+
+    const onResize = () => {
+      vh = window.innerHeight || 1;
+      schedule();
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) schedule();
+      },
+      { rootMargin: '250px 0px' }
+    );
+    io.observe(section);
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      io.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
@@ -74,6 +101,7 @@ export default function ContactSection({ isGerman, visible }) {
 
   return (
     <section
+      ref={sectionRef}
       className={`contact-parallax-section fade-up ${visible ? 'visible' : ''}`}
       id="contact"
     >
@@ -197,6 +225,9 @@ export default function ContactSection({ isGerman, visible }) {
     </section>
   );
 }
+
+const MemoContactSection = React.memo(ContactSection);
+export default MemoContactSection;
 
 function fallbackCopyText(text, onSuccess) {
   try {

@@ -1,33 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import GooeyNav from './GooeyNav';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { GitHubLogo } from './TechIcon';
 
-export default function Navbar({ isGerman, onToggleLanguage }) {
+const GooeyNav = React.lazy(() => import('./GooeyNav'));
+
+function Navbar({ isGerman, onToggleLanguage }) {
   const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth >= 860 : true
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 860px)').matches
+      : true
   );
 
   useEffect(() => {
-    const onResize = () => {
-      setIsDesktop(window.innerWidth >= 860);
-    };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
+    const mq = window.matchMedia('(min-width: 860px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  const items = [
-    { label: 'Home', href: '#header' },
-    { label: isGerman ? 'Projekte' : 'Work', href: '#projects' },
-    { label: '3D-Renders', href: '#blender' },
-    { label: isGerman ? 'Kontakt' : 'Contact', href: '#contact' },
-  ];
+  const items = useMemo(
+    () => [
+      { label: 'Home', href: '#header' },
+      { label: isGerman ? 'Projekte' : 'Work', href: '#projects' },
+      { label: '3D-Renders', href: '#blender' },
+      { label: isGerman ? 'Kontakt' : 'Contact', href: '#contact' },
+    ],
+    [isGerman]
+  );
+
+  const handleNavChange = useCallback((_index, item) => {
+    if (item?.href && item.href.startsWith('#')) {
+      const target = document.querySelector(item.href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, []);
 
   return (
     <header className="site-header">
       <div className="nav-inner">
         <div className="nav-bar-top">
           <a href="#header" className="brand-link">
-            <img src="ico.png" alt="Ilay-dev" />
+            <img src="ico.png" alt="Ilay-dev" width="28" height="28" decoding="async" />
             <span>Ilay-dev</span>
           </a>
 
@@ -55,31 +70,28 @@ export default function Navbar({ isGerman, onToggleLanguage }) {
 
         {isDesktop && (
           <div className="nav-gooey-wrapper">
-            <GooeyNav
-              items={items}
-              initialActiveIndex={0}
-              theme="dark"
-              size="md"
-              frame={true}
-              particleCount={15}
-              spread={56}
-              animationTime={600}
-              timeVariance={300}
-              gooeyness={0.5}
-              wobble={0.5}
-              hoverEffect={true}
-              onChange={(_index, item) => {
-                if (item?.href && item.href.startsWith('#')) {
-                  const target = document.querySelector(item.href);
-                  if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }
-              }}
-            />
+            <Suspense fallback={null}>
+              <GooeyNav
+                items={items}
+                initialActiveIndex={0}
+                theme="dark"
+                size="md"
+                frame={true}
+                particleCount={15}
+                spread={56}
+                animationTime={600}
+                timeVariance={300}
+                gooeyness={0.5}
+                wobble={0.5}
+                hoverEffect={true}
+                onChange={handleNavChange}
+              />
+            </Suspense>
           </div>
         )}
       </div>
     </header>
   );
 }
+
+export default React.memo(Navbar);

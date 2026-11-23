@@ -16,7 +16,7 @@ function SpecDomainMeta({ index }) {
   return 'PYTHON // C++ // ESP32';
 }
 
-function SpecSchematic({ index }) {
+const SpecSchematic = React.memo(function SpecSchematic({ index }) {
   if (index === '01') {
     // 3D Modeling & VFX — Camera Frustum & Raytracing Path Geometry
     return (
@@ -193,67 +193,117 @@ function SpecSchematic({ index }) {
       </div>
     </div>
   );
-}
+});
 
-export default function SpecsSection({ isGerman, visible }) {
+function SpecsSection({ isGerman, visible }) {
+  const sectionRef = useRef(null);
   const cardRefs = useRef([]);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
     let rafId = 0;
+    let inView = false;
+    let vh = window.innerHeight || 1;
+    let vw = window.innerWidth || 1;
+    const count = WORK_SPECS.length;
+    const lastState = Array.from({ length: count }, () => ({
+      tr: '',
+      wm: '',
+      l1: '',
+      l2: '',
+    }));
 
     const updateSpecsParallax = () => {
       rafId = 0;
-      const vh = window.innerHeight || 1;
-      const vw = window.innerWidth || 1;
+      if (!inView) return;
       const isCompact = vw <= 859;
 
-      for (let i = 0; i < WORK_SPECS.length; i++) {
+      // Pass 1: Read all rects first (prevents layout thrashing)
+      const rects = new Array(count);
+      for (let i = 0; i < count; i++) {
         const cardEl = cardRefs.current[i];
-        if (!cardEl) continue;
+        if (cardEl) rects[i] = cardEl.getBoundingClientRect();
+      }
 
-        const rect = cardEl.getBoundingClientRect();
+      // Pass 2: Apply only changed writes
+      for (let i = 0; i < count; i++) {
+        const cardEl = cardRefs.current[i];
+        const rect = rects[i];
+        if (!cardEl || !rect) continue;
+
         const centerOffset = clamp(
           (rect.top + rect.height * 0.5 - vh * 0.52) / (vh * 0.65),
           -1,
           1
         );
 
-        // Staggered vertical parallax per column on desktop, smooth subtle glide on mobile
         const staggerFactor = isCompact ? 1 : 0.75 + i * 0.28;
         const cardY = centerOffset * (isCompact ? 10 : 18) * staggerFactor;
         const watermarkY = centerOffset * (isCompact ? -18 : -34);
         const layer1Y = centerOffset * (isCompact ? -10 : -18);
         const layer2Y = centerOffset * (isCompact ? 12 : 22);
 
-        cardEl.style.transform = `translate3d(0, ${cardY.toFixed(1)}px, 0)`;
-        cardEl.style.setProperty(
-          '--s-watermark-y',
-          `${watermarkY.toFixed(1)}px`
-        );
-        cardEl.style.setProperty('--s-layer-1', `${layer1Y.toFixed(1)}px`);
-        cardEl.style.setProperty('--s-layer-2', `${layer2Y.toFixed(1)}px`);
+        const prev = lastState[i];
+        const tr = `translate3d(0, ${cardY.toFixed(1)}px, 0)`;
+        const wm = `${watermarkY.toFixed(1)}px`;
+        const l1 = `${layer1Y.toFixed(1)}px`;
+        const l2 = `${layer2Y.toFixed(1)}px`;
+
+        if (prev.tr !== tr) {
+          cardEl.style.transform = tr;
+          prev.tr = tr;
+        }
+        if (prev.wm !== wm) {
+          cardEl.style.setProperty('--s-watermark-y', wm);
+          prev.wm = wm;
+        }
+        if (prev.l1 !== l1) {
+          cardEl.style.setProperty('--s-layer-1', l1);
+          prev.l1 = l1;
+        }
+        if (prev.l2 !== l2) {
+          cardEl.style.setProperty('--s-layer-2', l2);
+          prev.l2 = l2;
+        }
       }
     };
 
-    const onScroll = () => {
-      if (!rafId) {
-        rafId = requestAnimationFrame(updateSpecsParallax);
-      }
+    const schedule = () => {
+      if (!inView || rafId) return;
+      rafId = requestAnimationFrame(updateSpecsParallax);
     };
 
-    updateSpecsParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    const onResize = () => {
+      vh = window.innerHeight || 1;
+      vw = window.innerWidth || 1;
+      schedule();
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) schedule();
+      },
+      { rootMargin: '250px 0px' }
+    );
+    io.observe(section);
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      io.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
   return (
     <section
+      ref={sectionRef}
       className={`specs-parallax-section fade-up ${visible ? 'visible' : ''}`}
       id="stack"
     >
@@ -326,3 +376,5 @@ export default function SpecsSection({ isGerman, visible }) {
     </section>
   );
 }
+
+export default React.memo(SpecsSection);

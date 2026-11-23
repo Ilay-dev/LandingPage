@@ -39,7 +39,7 @@ export const PROJECTS = [
     id: '04',
     title: 'Rustify',
     type: 'Desktop App',
-    url: 'https://github.com/Ilay-dev/Rustify',
+    url: 'https://ilay-dev.github.io/Rustify-Download',
     categories: ['system'],
     desc: {
       en: 'A minimalist dark liquid-glass local music player written 100% in pure Rust, featuring AI beat-matched DJ automixing, a 5-band equalizer, synced karaoke lyrics, and a built-in real-time audio visualizer.',
@@ -91,6 +91,7 @@ export const GALLERY_ITEMS = [
     type: 'video',
     category: 'video',
     src: 'src/Turnaround_neu.mp4',
+    poster: 'src/Turnaround_neu_poster.webp',
     alt: 'Smart Rotary Controller Turnaround',
     title: {
       en: 'Smart Rotary Controller',
@@ -107,6 +108,7 @@ export const GALLERY_ITEMS = [
     type: 'video',
     category: 'video',
     src: 'src/Holo_vid_sound.mp4',
+    poster: 'src/Holo_vid_sound_poster.webp',
     hasAudio: true,
     alt: 'Voronoi Desk Animation',
     title: {
@@ -123,7 +125,7 @@ export const GALLERY_ITEMS = [
     id: 'f75',
     type: 'image',
     category: 'render',
-    src: 'src/f75_grass.jpg',
+    src: 'src/f75_grass.webp',
     alt: 'F75 Keyboard 3D Render',
     title: {
       en: 'Aula F75 Mechanical Keyboard',
@@ -140,6 +142,7 @@ export const GALLERY_ITEMS = [
     type: 'video',
     category: 'video',
     src: 'src/Backrooms_v2_vid.mp4',
+    poster: 'src/Backrooms_v2_vid_poster.webp',
     alt: 'Backrooms Poolrooms Animation',
     title: {
       en: 'Poolrooms Architecture',
@@ -155,7 +158,7 @@ export const GALLERY_ITEMS = [
     id: 'forest',
     type: 'image',
     category: 'render',
-    src: 'src/p1_forest_4.png',
+    src: 'src/p1_forest_4.webp',
     alt: 'Forest 3D Render',
     title: {
       en: 'Misty Forest Clearing',
@@ -172,6 +175,7 @@ export const GALLERY_ITEMS = [
     type: 'video',
     category: 'video',
     src: 'src/realism_v20001-0228_mit_ton.mp4',
+    poster: 'src/realism_v20001-0228_mit_ton_poster.webp',
     hasAudio: true,
     alt: 'Photorealistic Glassware Tabletop Animation',
     title: {
@@ -188,7 +192,7 @@ export const GALLERY_ITEMS = [
     id: 'manhattan',
     type: 'image',
     category: 'render',
-    src: 'src/Manhatten_v2.png',
+    src: 'src/Manhatten_v2.webp',
     alt: 'Inverted Manhattan Skyline 3D Render',
     title: {
       en: 'Inverted Manhattan Skyline',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProjectsSection from './components/ProjectsSection';
@@ -7,6 +7,8 @@ import SpecsSection from './components/SpecsSection';
 import ContactSection from './components/ContactSection';
 import Lightbox from './components/Lightbox';
 import { GitHubLogo } from './components/TechIcon';
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 class SafeSection extends React.Component {
   constructor(props) {
@@ -39,6 +41,14 @@ export default function App() {
 
   const [lightboxItem, setLightboxItem] = useState(null);
 
+  const handleToggleLanguage = useCallback(() => {
+    setIsGerman((prev) => !prev);
+  }, []);
+
+  const handleCloseLightbox = useCallback(() => {
+    setLightboxItem(null);
+  }, []);
+
   useEffect(() => {
     document.documentElement.lang = isGerman ? 'de' : 'en';
   }, [isGerman]);
@@ -48,7 +58,7 @@ export default function App() {
       <SafeSection>
         <Navbar
           isGerman={isGerman}
-          onToggleLanguage={() => setIsGerman((prev) => !prev)}
+          onToggleLanguage={handleToggleLanguage}
         />
       </SafeSection>
 
@@ -75,7 +85,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <span>© {new Date().getFullYear()} Ilay Schönknecht</span>
+        <span>© {CURRENT_YEAR} Ilay Schönknecht</span>
         <a
           href="https://github.com/Ilay-dev"
           target="_blank"
@@ -88,7 +98,9 @@ export default function App() {
         </a>
       </footer>
 
-      <Lightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
+      {lightboxItem && (
+        <Lightbox item={lightboxItem} onClose={handleCloseLightbox} />
+      )}
     </>
   );
 }

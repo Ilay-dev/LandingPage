@@ -7,5 +7,17 @@ export default defineConfig({
   // Relative base path ensures assets work on both root domains (ilay-dev.github.io)
   // and project subpaths (ilay-dev.github.io/LandingPage/) on GitHub Pages.
   base: './',
+  build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-ogl': ['ogl'],
+        },
+      },
+    },
+  },
 });
 
