@@ -37,15 +37,15 @@ export const PROJECTS = [
   },
   {
     id: '04',
-    title: '3dView',
-    type: 'Web App',
-    url: 'https://ilay-dev.github.io/3dView',
-    categories: ['3d', 'web'],
+    title: 'Rustify',
+    type: 'Desktop App',
+    url: 'https://github.com/Ilay-dev/Rustify',
+    categories: ['system'],
     desc: {
-      en: 'A web-based 3D viewer for loading, lighting, rendering, and inspecting 3D models directly in the browser.',
-      de: 'Ein webbasierter 3D-Viewer zum Laden, Rendern und Interagieren mit 3D-Modellen direkt im Browser.',
+      en: 'A minimalist dark liquid-glass local music player written 100% in pure Rust, featuring AI beat-matched DJ automixing, a 5-band equalizer, synced karaoke lyrics, and a built-in real-time audio visualizer.',
+      de: 'Ein minimalistischer lokaler Musikplayer im dunklen Liquid-Glass-Design, zu 100 % in reinem Rust geschrieben – mit KI-Beat-Matching-DJ-Automixer, 5-Band-Equalizer, synchronisierten Karaoke-Lyrics und integriertem Echtzeit-Audio-Visualizer.',
     },
-    tags: ['Three.js', '3D Viewer', 'WebGL'],
+    tags: ['Rust', 'AI DJ Automix', 'Audio DSP'],
   },
   {
     id: '05',

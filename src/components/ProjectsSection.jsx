@@ -211,7 +211,7 @@ function ProjectSchematic({ id }) {
       );
 
     case '04':
-      // 3dView — Interactive CAD / Mesh Wireframe & Coordinate Gimbal
+      // Rustify — Pure-Rust Liquid-Glass Music Player, Dual-Deck AI DJ Automixer & 5-Band EQ
       return (
         <div className="project-blueprint" aria-hidden="true">
           <div className="project-blueprint__grid" />
@@ -220,34 +220,54 @@ function ProjectSchematic({ id }) {
             viewBox="0 0 360 220"
             fill="none"
           >
-            <polygon
-              points="180,38 258,78 258,148 180,186 102,148 102,78"
-              stroke="rgba(244,244,245,0.36)"
-              strokeWidth="1.2"
+            {/* Dual-deck outer platter rings */}
+            <circle
+              cx="116"
+              cy="98"
+              r="52"
+              stroke="rgba(244,244,245,0.24)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
             />
+            <circle
+              cx="116"
+              cy="98"
+              r="34"
+              stroke="rgba(244,244,245,0.34)"
+              strokeWidth="1.1"
+            />
+            <circle
+              cx="244"
+              cy="98"
+              r="52"
+              stroke="rgba(244,244,245,0.24)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
+            <circle
+              cx="244"
+              cy="98"
+              r="34"
+              stroke="rgba(244,244,245,0.34)"
+              strokeWidth="1.1"
+            />
+            {/* Phase-lock bridge & EQ baseline */}
             <line
-              x1="180"
-              y1="38"
-              x2="180"
-              y2="114"
+              x1="150"
+              y1="98"
+              x2="210"
+              y2="98"
               stroke="rgba(244,244,245,0.22)"
+              strokeWidth="1"
               strokeDasharray="3 3"
             />
             <line
-              x1="180"
-              y1="114"
-              x2="258"
-              y2="148"
-              stroke="rgba(244,244,245,0.22)"
-              strokeDasharray="3 3"
-            />
-            <line
-              x1="180"
-              y1="114"
-              x2="102"
-              y2="148"
-              stroke="rgba(244,244,245,0.22)"
-              strokeDasharray="3 3"
+              x1="76"
+              y1="168"
+              x2="284"
+              y2="168"
+              stroke="rgba(244,244,245,0.18)"
+              strokeWidth="1"
             />
           </svg>
           <svg
@@ -255,43 +275,78 @@ function ProjectSchematic({ id }) {
             viewBox="0 0 360 220"
             fill="none"
           >
-            <polygon
-              points="180,38 258,78 180,116 102,78"
-              stroke="rgba(244,244,245,0.78)"
-              strokeWidth="1.3"
-              fill="rgba(244,244,245,0.04)"
+            {/* Deck A active arc & spindle */}
+            <path
+              d="M 116 58 A 40 40 0 1 1 82 118"
+              stroke="rgba(244,244,245,0.85)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
             />
-            <line
-              x1="180"
-              y1="116"
-              x2="180"
-              y2="186"
+            <circle
+              cx="116"
+              cy="98"
+              r="11"
               stroke="rgba(244,244,245,0.75)"
-              strokeWidth="1.3"
+              strokeWidth="1.2"
+              fill="rgba(9,9,11,0.75)"
             />
+            <circle cx="116" cy="98" r="3" fill="#f4f4f5" />
+
+            {/* Deck B active arc & spindle */}
+            <path
+              d="M 244 138 A 40 40 0 1 1 278 78"
+              stroke="rgba(244,244,245,0.68)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <circle
+              cx="244"
+              cy="98"
+              r="11"
+              stroke="rgba(244,244,245,0.75)"
+              strokeWidth="1.2"
+              fill="rgba(9,9,11,0.75)"
+            />
+            <circle cx="244" cy="98" r="3" fill="#f4f4f5" />
+
+            {/* Beat-grid phase-locked crossfade wave */}
+            <path
+              d="M 152 98 Q 166 74, 180 98 T 208 98"
+              stroke="#f4f4f5"
+              strokeWidth="1.4"
+              fill="none"
+            />
+            <circle cx="180" cy="98" r="3.5" fill="#f4f4f5" />
+
+            {/* 5-Band EQ faders */}
             {[
-              [180, 38],
-              [258, 78],
-              [180, 116],
-              [102, 78],
-              [180, 186],
-              [258, 148],
-              [102, 148],
-            ].map(([vx, vy], i) => (
-              <rect
-                key={i}
-                x={vx - 3}
-                y={vy - 3}
-                width="6"
-                height="6"
-                fill="#f4f4f5"
-              />
+              [124, 152, 16],
+              [152, 144, 24],
+              [180, 156, 12],
+              [208, 148, 20],
+              [236, 154, 14],
+            ].map(([x, y, h], i) => (
+              <g key={i}>
+                <rect
+                  x={x - 3}
+                  y={y}
+                  width="6"
+                  height={h}
+                  rx="2"
+                  fill={
+                    i === 1 || i === 3
+                      ? 'rgba(244,244,245,0.9)'
+                      : 'rgba(244,244,245,0.45)'
+                  }
+                />
+                <circle cx={x} cy={y} r="2.2" fill="#f4f4f5" />
+              </g>
             ))}
           </svg>
           <div className="project-blueprint__hud project-blueprint__layer-3">
-            <span>GLTF / OBJ // PBR</span>
-            <span>FOV: 45.0°</span>
-            <span>ORBIT_CONTROLS</span>
+            <span>PURE RUST // EGUI</span>
+            <span>AI DJ · -14 LUFS</span>
+            <span>5-BAND EQ · DSP</span>
           </div>
         </div>
       );

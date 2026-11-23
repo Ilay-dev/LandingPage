@@ -282,6 +282,27 @@ export function Html5Logo({ size = 15, className = '' }) {
   );
 }
 
+export function RustLogo({ size = 15, className = '' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.65"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="7.2" />
+      <circle cx="12" cy="12" r="2.6" />
+      <path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7" />
+    </svg>
+  );
+}
+
 export function MailLogo({ size = 16, className = '' }) {
   return (
     <svg
@@ -310,13 +331,14 @@ export default function TechIcon({ name = '', size = 14, className = '' }) {
     return <BlenderLogo size={size} className={className} />;
   if (key.includes('react')) return <ReactLogo size={size} className={className} />;
   if (key.includes('javascript') || key === 'js') return <JavaScriptLogo size={size} className={className} />;
+  if (key.includes('rust')) return <RustLogo size={size} className={className} />;
   if (key.includes('python')) return <PythonLogo size={size} className={className} />;
   if (key.includes('c++') || key.includes('c / c++')) return <CppLogo size={size} className={className} />;
   if (key.includes('three.js') || key.includes('three')) return <ThreeJsLogo size={size} className={className} />;
   if (key.includes('html') || key.includes('css')) return <Html5Logo size={size} className={className} />;
-  if (key.includes('esp32') || key.includes('embedded') || key.includes('printing') || key.includes('hardware'))
+  if (key.includes('esp32') || key.includes('embedded') || key.includes('printing') || key.includes('hardware') || key.includes('ai '))
     return <ChipLogo size={size} className={className} />;
-  if (key.includes('audio') || key.includes('real-time')) return <AudioLogo size={size} className={className} />;
+  if (key.includes('audio') || key.includes('real-time') || key.includes('dsp')) return <AudioLogo size={size} className={className} />;
   if (key.includes('git')) return <GitLogo size={size} className={className} />;
   if (key.includes('linux') || key.includes('windows') || key.includes('desktop') || key.includes('automation'))
     return <TerminalLogo size={size} className={className} />;
